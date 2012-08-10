@@ -1,3 +1,5 @@
+package net.jcazevedo.finger_tree
+
 trait Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
