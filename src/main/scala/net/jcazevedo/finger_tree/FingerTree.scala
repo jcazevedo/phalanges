@@ -129,17 +129,3 @@ object Digit {
   def apply[A](a: A, b: A, c: A): Digit[A] = Three(a, b, c)
   def apply[A](a: A, b: A, c: A, d: A): Digit[A] = Four(a, b, c, d)
 }
-
-object Main extends App {
-  val f1: FingerTree[Char] = Deep(Digit('t', 'h'),
-                                 Deep(Digit(Node('i', 's'), Node('i', 's')),
-                                      Empty(),
-                                      Digit(Node('n', 'o', 't'), Node('a', 't'))),
-                                 Digit('r', 'e', 'e'))
-
-  val f2a: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: Empty()
-  val f2: FingerTree[Char] = f2a + 'a' + 't' + 'r' + 'e' + 'e'
-  println (f2.foldRight("") { (c, s) =>
-    c + s
-  })
-}
