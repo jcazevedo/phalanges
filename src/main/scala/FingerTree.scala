@@ -1,5 +1,3 @@
-import scala.collection.mutable.ListBuffer
-
 trait Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
@@ -27,7 +25,7 @@ trait FingerTree[A] {
   def +(a: A): FingerTree[A]
 }
 
-case class Empty[A] extends FingerTree[A] {
+case class Empty[A]() extends FingerTree[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = z
   def foldLeft[B](z: B)(f: (B, A) => B): B = z
   def ::(a: A): FingerTree[A] = Single(a)
