@@ -1,9 +1,5 @@
 import scala.collection.mutable.ListBuffer
 
-trait Tree[A]
-case class Zero[A](a: A) extends Tree[A]
-case class Succ[A](a: Tree[Node[A]]) extends Tree[A]
-
 trait Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
@@ -123,13 +119,6 @@ object Digit {
 }
 
 object Main extends App {
-  val t = Succ(Zero(Node(Succ(Zero(Node(Succ(Zero(Node('t', 'h'))),
-                                        Succ(Zero(Node('i', 's'))),
-                                        Succ(Zero(Node('i', 's')))))),
-                         Succ(Zero(Node(Succ(Zero(Node('n', 'o', 't'))),
-                                        Succ(Zero(Node('a', 't'))),
-                                        Succ(Zero(Node('r', 'e', 'e')))))))))
-
   val f1: FingerTree[Char] = Deep(Digit('t', 'h'),
                                  Deep(Digit(Node('i', 's'), Node('i', 's')),
                                       Empty(),
