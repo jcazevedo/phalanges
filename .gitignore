@@ -1,0 +1,6 @@
+target/
+.DS_Store
+.ensime
+.lib
+.ensime_lucene
+*~
