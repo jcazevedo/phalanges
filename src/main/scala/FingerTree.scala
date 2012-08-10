@@ -24,18 +24,21 @@ trait FingerTree[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
   def ::(a: A): FingerTree[A]
+  def +(a: A): FingerTree[A]
 }
 
 case class Empty[A] extends FingerTree[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = z
   def foldLeft[B](z: B)(f: (B, A) => B): B = z
   def ::(a: A): FingerTree[A] = Single(a)
+  def +(a: A): FingerTree[A] = Single(a)
 }
 
 case class Single[A](x: A) extends FingerTree[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(x, z)
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, x)
   def ::(a: A): FingerTree[A] = Deep(Digit(a), Empty(), Digit(x))
+  def +(a: A): FingerTree[A] = Deep(Digit(x), Empty(), Digit(a))
 }
 
 case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
@@ -84,6 +87,15 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
       case One(b) => Deep(Digit(a, b), m, sf)
     }
   }
+
+  def +(a: A): FingerTree[A] = {
+    sf match {
+      case Four(e, d, c, b) => Deep(pr, m + Node(e, d, c), Digit(b, a))
+      case Three(d, c, b) => Deep(pr, m, Digit(d, c, b, a))
+      case Two(c, b) => Deep(pr, m, Digit(c, b, a))
+      case One(b) => Deep(pr, m, Digit(b, a))
+    }
+  }
 }
 
 trait Digit[A] {
@@ -125,7 +137,8 @@ object Main extends App {
                                       Digit(Node('n', 'o', 't'), Node('a', 't'))),
                                  Digit('r', 'e', 'e'))
 
-  val f2: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+  val f2a: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: Empty()
+  val f2: FingerTree[Char] = f2a + 'a' + 't' + 'r' + 'e' + 'e'
   println (f2.foldRight("") { (c, s) =>
     c + s
   })
