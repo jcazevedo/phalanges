@@ -61,5 +61,20 @@ class FingerTreeSpec extends Specification {
 
       l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
     }
+
+    "support toList method" in {
+      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val l = f.toList
+
+      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
+    }
+
+    "support toTree method" in {
+      val l = List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
+      val f = FingerTree.toTree(l)
+      val fl = f.toList
+
+      fl mustEqual l
+    }
   }
 }

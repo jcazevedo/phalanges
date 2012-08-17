@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # A more capable sbt runner, coincidentally also called sbt.
 # Author: Paul Phillips <paulp@typesafe.com>
@@ -88,7 +88,7 @@ get_mem_opts () {
   (( $perm > 256 )) || perm=256
   (( $perm < 1024 )) || perm=1024
   local codecache=$(( $perm / 2 ))
-  
+
   echo "-Xms${mem}m -Xmx${mem}m -XX:MaxPermSize=${perm}m -XX:ReservedCodeCacheSize=${codecache}m"
 }
 
@@ -101,7 +101,7 @@ make_url () {
   groupid="$1"
   category="$2"
   version="$3"
-  
+
   echo "http://typesafe.artifactoryonline.com/typesafe/ivy-$category/$groupid/sbt-launch/$version/sbt-launch.jar"
 }
 
@@ -170,7 +170,7 @@ sbt_artifactory_list () {
   local version=${version0%-SNAPSHOT}
   local url="http://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/$(sbt_groupid)/sbt-launch/"
   dlog "Looking for snapshot list at: $url "
-  
+
   curl -s --list-only "$url" | \
     grep -F $version | \
     perl -e 'print reverse <>' | \
@@ -209,7 +209,7 @@ jar_file () {
 download_url () {
   local url="$1"
   local jar="$2"
-  
+
   echo "Downloading sbt launcher $(sbt_version):"
   echo "  From  $url"
   echo "    To  $jar"
@@ -253,7 +253,7 @@ Usage: $script_name [options]
   # sbt version (default: from project/build.properties if present, else latest release)
   !!! The only way to accomplish this pre-0.12.0 if there is a build.properties file which
   !!! contains an sbt.version property is to update the file on disk.  That's what this does.
-  -sbt-version  <version>   use the specified version of sbt 
+  -sbt-version  <version>   use the specified version of sbt
   -sbt-jar      <path>      use the specified jar as the sbt launcher
   -sbt-snapshot             use a snapshot version of sbt
   -sbt-launch-dir <path>    directory to hold sbt launchers (default: $sbt_launch_dir)
@@ -317,7 +317,7 @@ process_args ()
     local type="$1"
     local opt="$2"
     local arg="$3"
-    
+
     if [[ -z "$arg" ]] || [[ "${arg:0:1}" == "-" ]]; then
       die "$opt requires <$type> argument"
     fi
@@ -359,16 +359,16 @@ process_args ()
               *) addResidual "$1" && shift ;;
     esac
   done
-  
+
   [[ $debug ]] && {
     case $(sbt_version) in
-     0.7.*) addSbt "debug" ;; 
+     0.7.*) addSbt "debug" ;;
          *) addSbt "set logLevel in Global := Level.Debug" ;;
     esac
   }
   [[ $quiet ]] && {
     case $(sbt_version) in
-     0.7.*) ;; 
+     0.7.*) ;;
          *) addSbt "set logLevel in Global := Level.Error" ;;
     esac
   }

@@ -25,6 +25,17 @@ trait FingerTree[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B
   def ::(a: A): FingerTree[A]
   def +(a: A): FingerTree[A]
+  def toList = foldRight(List[A]()) { (h, l) =>
+    h :: l
+  }
+}
+
+object FingerTree {
+  def toTree[A](s: Traversable[A]) = {
+    s.foldRight[FingerTree[A]](Empty[A]()) { (h, t) =>
+      h :: t
+    }
+  }
 }
 
 case class Empty[A]() extends FingerTree[A] {
@@ -101,26 +112,36 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
 trait Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
+  def head: A
+  def tail: Option[Digit[A]]
 }
 
 case class One[A](a: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, z)
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, a)
+  def head = a
+  def tail = None
 }
 
 case class Two[A](a: A, b: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, z))
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(z, a), b)
+  def head = a
+  def tail = Some(Digit(b))
 }
 
 case class Three[A](a: A, b: A, c: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, f(c, z)))
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(z, a), b), c)
+  def head = a
+  def tail = Some(Digit(b, c))
 }
 
 case class Four[A](a: A, b: A, c: A, d: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, f(c, f(d, z))))
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(f(z, a), b), c), d)
+  def head = a
+  def tail = Some(Digit(b, c, d))
 }
 
 object Digit {
