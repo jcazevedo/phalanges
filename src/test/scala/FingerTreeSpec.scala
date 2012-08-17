@@ -111,6 +111,20 @@ class FingerTreeSpec extends Specification {
       f5.viewL mustEqual Some(('t', Deep(Two('h', 'i'), Empty[Node[Char]](), One('s'))))
     }
 
+    "support viewR method" in {
+      val f1 = Empty()
+      val f2 = 't' :: Empty()
+      val f3 = 't' :: 'h' :: Empty()
+      val f4 = 't' :: 'h' :: 'i' :: Empty()
+      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+
+      f1.viewR mustEqual None
+      f2.viewR mustEqual Some((Empty(), 't'))
+      f3.viewR mustEqual Some((Single('t'), 'h'))
+      f4.viewR mustEqual Some((Deep(One('t'), Empty[Node[Char]](), One('h')), 'i'))
+      f5.viewR mustEqual Some((Deep(Two('t', 'h'), Empty[Node[Char]](), One('i')), 's'))
+    }
+
     "support isEmpty method" in {
       val f1 = Empty()
       val f2 = 't' :: Empty()
@@ -131,6 +145,18 @@ class FingerTreeSpec extends Specification {
       f4.headL mustEqual 't'
     }
 
+    "support headR method" in {
+      val f1 = 't' :: Empty()
+      val f2 = 't' :: 'h' :: Empty()
+      val f3 = 't' :: 'h' :: 'i' :: Empty()
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+
+      f1.headR mustEqual 't'
+      f2.headR mustEqual 'h'
+      f3.headR mustEqual 'i'
+      f4.headR mustEqual 's'
+    }
+
     "support tailL method" in {
       val f1 = 't' :: Empty()
       val f2 = 't' :: 'h' :: Empty()
@@ -141,6 +167,18 @@ class FingerTreeSpec extends Specification {
       f2.tailL mustEqual Single('h')
       f3.tailL mustEqual Deep(One('h'), Empty[Node[Char]](), One('i'))
       f4.tailL mustEqual Deep(Two('h', 'i'), Empty[Node[Char]](), One('s'))
+    }
+
+    "support tailR method" in {
+      val f1 = 't' :: Empty()
+      val f2 = 't' :: 'h' :: Empty()
+      val f3 = 't' :: 'h' :: 'i' :: Empty()
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+
+      f1.tailR mustEqual Empty()
+      f2.tailR mustEqual Single('t')
+      f3.tailR mustEqual Deep(One('t'), Empty[Node[Char]](), One('h'))
+      f4.tailR mustEqual Deep(Two('t', 'h'), Empty[Node[Char]](), One('i'))
     }
   }
 }

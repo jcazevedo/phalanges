@@ -24,26 +24,36 @@ object Node {
 }
 
 trait FingerTree[A] {
-  type LeftView = Option[(A, FingerTree[A])]
-
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
   def ::(a: A): FingerTree[A]
   def +(a: A): FingerTree[A]
-  def viewL: LeftView
+  def viewL: Option[(A, FingerTree[A])]
+  def viewR: Option[(FingerTree[A], A)]
 
   def toList = foldRight(List[A]()) { (h, l) =>
     h :: l
   }
+
   def isEmpty = viewL match {
     case None => true
     case Some((_, _)) => false
   }
+
   def headL = (viewL: @unchecked) match {
     case Some((h, _)) => h
   }
+
+  def headR = (viewR: @unchecked) match {
+    case Some((_, h)) => h
+  }
+
   def tailL = (viewL: @unchecked) match {
     case Some((_, t)) => t
+  }
+
+  def tailR = (viewR: @unchecked) match {
+    case Some((t, _)) => t
   }
 }
 
@@ -61,6 +71,7 @@ case class Empty[A]() extends FingerTree[A] {
   def ::(a: A): FingerTree[A] = Single(a)
   def +(a: A): FingerTree[A] = Single(a)
   def viewL = None
+  def viewR = None
 }
 
 case class Single[A](x: A) extends FingerTree[A] {
@@ -69,6 +80,7 @@ case class Single[A](x: A) extends FingerTree[A] {
   def ::(a: A): FingerTree[A] = Deep(Digit(a), Empty(), Digit(x))
   def +(a: A): FingerTree[A] = Deep(Digit(x), Empty(), Digit(a))
   def viewL = Some(x, Empty[A]())
+  def viewR = Some(Empty[A](), x)
 }
 
 case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
@@ -127,7 +139,8 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
     }
   }
 
-  def viewL = Some((pr.head, deepL(pr.tail, m, sf)))
+  def viewL = Some((pr.headL, deepL(pr.tailL, m, sf)))
+  def viewR = Some((deepR(pr, m, sf.tailR), sf.headR))
 
   def deepL(pr: Option[Digit[A]], m: FingerTree[Node[A]], sf: Digit[A]) = {
     pr match {
@@ -138,45 +151,65 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
       }
     }
   }
+
+  def deepR(pr: Digit[A], m: FingerTree[Node[A]], sf: Option[Digit[A]]) = {
+    sf match {
+      case Some(d) => Deep(pr, m, d)
+      case None => m.viewR match {
+        case None => pr.toTree
+        case Some((m, a)) => Deep(pr, m, a.toDigit)
+      }
+    }
+  }
 }
 
 trait Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
-  def head: A
-  def tail: Option[Digit[A]]
+  def headL: A
+  def tailL: Option[Digit[A]]
+  def headR: A
+  def tailR: Option[Digit[A]]
   def toTree: FingerTree[A]
 }
 
 case class One[A](a: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, z)
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, a)
-  def head = a
-  def tail = None
+  def headL = a
+  def tailL = None
+  def headR = a
+  def tailR = None
   def toTree = a :: Empty()
 }
 
 case class Two[A](a: A, b: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, z))
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(z, a), b)
-  def head = a
-  def tail = Some(Digit(b))
+  def headL = a
+  def tailL = Some(Digit(b))
+  def headR = b
+  def tailR = Some(Digit(a))
   def toTree = a :: b :: Empty()
 }
 
 case class Three[A](a: A, b: A, c: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, f(c, z)))
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(z, a), b), c)
-  def head = a
-  def tail = Some(Digit(b, c))
+  def headL = a
+  def tailL = Some(Digit(b, c))
+  def headR = c
+  def tailR = Some(Digit(a, b))
   def toTree = a :: b :: c :: Empty()
 }
 
 case class Four[A](a: A, b: A, c: A, d: A) extends Digit[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, f(c, f(d, z))))
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(f(z, a), b), c), d)
-  def head = a
-  def tail = Some(Digit(b, c, d))
+  def headL = a
+  def tailL = Some(Digit(b, c, d))
+  def headR = d
+  def tailR = Some(Digit(a, b, c))
   def toTree = a :: b :: c :: d :: Empty()
 }
 
