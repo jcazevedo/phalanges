@@ -76,5 +76,71 @@ class FingerTreeSpec extends Specification {
 
       fl mustEqual l
     }
+
+    "support toTree method in digits" in {
+      val d1 = Digit('t')
+      val d2 = Digit('t', 'h')
+      val d3 = Digit('t', 'h', 'i')
+      val d4 = Digit('t', 'h', 'i', 's')
+
+      d1.toTree mustEqual 't' :: Empty()
+      d2.toTree mustEqual 't' :: 'h' :: Empty()
+      d3.toTree mustEqual 't' :: 'h' :: 'i' :: Empty()
+      d4.toTree mustEqual 't' :: 'h' :: 'i' :: 's' :: Empty()
+    }
+
+    "support toDigit method in nodes" in {
+      val n2 = Node('a', 'b')
+      val n3 = Node('a', 'b', 'c')
+
+      n2.toDigit mustEqual Two('a', 'b')
+      n3.toDigit mustEqual Three('a', 'b', 'c')
+    }
+
+    "support viewL method" in {
+      val f1 = Empty()
+      val f2 = 't' :: Empty()
+      val f3 = 't' :: 'h' :: Empty()
+      val f4 = 't' :: 'h' :: 'i' :: Empty()
+      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+
+      f1.viewL mustEqual None
+      f2.viewL mustEqual Some(('t', Empty()))
+      f3.viewL mustEqual Some(('t', Single('h')))
+      f4.viewL mustEqual Some(('t', Deep(One('h'), Empty[Node[Char]](), One('i'))))
+      f5.viewL mustEqual Some(('t', Deep(Two('h', 'i'), Empty[Node[Char]](), One('s'))))
+    }
+
+    "support isEmpty method" in {
+      val f1 = Empty()
+      val f2 = 't' :: Empty()
+
+      f1.isEmpty must beTrue
+      f2.isEmpty must beFalse
+    }
+
+    "support headL method" in {
+      val f1 = 't' :: Empty()
+      val f2 = 't' :: 'h' :: Empty()
+      val f3 = 't' :: 'h' :: 'i' :: Empty()
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+
+      f1.headL mustEqual 't'
+      f2.headL mustEqual 't'
+      f3.headL mustEqual 't'
+      f4.headL mustEqual 't'
+    }
+
+    "support tailL method" in {
+      val f1 = 't' :: Empty()
+      val f2 = 't' :: 'h' :: Empty()
+      val f3 = 't' :: 'h' :: 'i' :: Empty()
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+
+      f1.tailL mustEqual Empty()
+      f2.tailL mustEqual Single('h')
+      f3.tailL mustEqual Deep(One('h'), Empty[Node[Char]](), One('i'))
+      f4.tailL mustEqual Deep(Two('h', 'i'), Empty[Node[Char]](), One('s'))
+    }
   }
 }

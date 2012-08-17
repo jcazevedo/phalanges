@@ -3,16 +3,19 @@ package net.jcazevedo.finger_tree
 trait Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
+  def toDigit: Digit[A]
 }
 
 case class Node2[A](a: A, b: A) extends Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B) = f(a, f(b, z))
   def foldLeft[B](z: B)(f: (B, A) => B) = f(f(z, a), b)
+  def toDigit = Two(a, b)
 }
 
 case class Node3[A](a: A, b: A, c: A) extends Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B) = f(a, f(b, f(c, z)))
   def foldLeft[B](z: B)(f: (B, A) => B) = f(f(f(z, a), b), c)
+  def toDigit = Three(a, b, c)
 }
 
 object Node {
@@ -21,12 +24,26 @@ object Node {
 }
 
 trait FingerTree[A] {
+  type LeftView = Option[(A, FingerTree[A])]
+
   def foldRight[B](z: B)(f: (A, B) => B): B
   def foldLeft[B](z: B)(f: (B, A) => B): B
   def ::(a: A): FingerTree[A]
   def +(a: A): FingerTree[A]
+  def viewL: LeftView
+
   def toList = foldRight(List[A]()) { (h, l) =>
     h :: l
+  }
+  def isEmpty = viewL match {
+    case None => true
+    case Some((_, _)) => false
+  }
+  def headL = (viewL: @unchecked) match {
+    case Some((h, _)) => h
+  }
+  def tailL = (viewL: @unchecked) match {
+    case Some((_, t)) => t
   }
 }
 
@@ -43,6 +60,7 @@ case class Empty[A]() extends FingerTree[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B = z
   def ::(a: A): FingerTree[A] = Single(a)
   def +(a: A): FingerTree[A] = Single(a)
+  def viewL = None
 }
 
 case class Single[A](x: A) extends FingerTree[A] {
@@ -50,6 +68,7 @@ case class Single[A](x: A) extends FingerTree[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, x)
   def ::(a: A): FingerTree[A] = Deep(Digit(a), Empty(), Digit(x))
   def +(a: A): FingerTree[A] = Deep(Digit(x), Empty(), Digit(a))
+  def viewL = Some(x, Empty[A]())
 }
 
 case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
@@ -107,6 +126,18 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
       case One(b) => Deep(pr, m, Digit(b, a))
     }
   }
+
+  def viewL = Some((pr.head, deepL(pr.tail, m, sf)))
+
+  def deepL(pr: Option[Digit[A]], m: FingerTree[Node[A]], sf: Digit[A]) = {
+    pr match {
+      case Some(d) => Deep(d, m, sf)
+      case None => m.viewL match {
+        case None => sf.toTree
+        case Some((a, m)) => Deep(a.toDigit, m, sf)
+      }
+    }
+  }
 }
 
 trait Digit[A] {
@@ -114,6 +145,7 @@ trait Digit[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B
   def head: A
   def tail: Option[Digit[A]]
+  def toTree: FingerTree[A]
 }
 
 case class One[A](a: A) extends Digit[A] {
@@ -121,6 +153,7 @@ case class One[A](a: A) extends Digit[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, a)
   def head = a
   def tail = None
+  def toTree = a :: Empty()
 }
 
 case class Two[A](a: A, b: A) extends Digit[A] {
@@ -128,6 +161,7 @@ case class Two[A](a: A, b: A) extends Digit[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(z, a), b)
   def head = a
   def tail = Some(Digit(b))
+  def toTree = a :: b :: Empty()
 }
 
 case class Three[A](a: A, b: A, c: A) extends Digit[A] {
@@ -135,6 +169,7 @@ case class Three[A](a: A, b: A, c: A) extends Digit[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(z, a), b), c)
   def head = a
   def tail = Some(Digit(b, c))
+  def toTree = a :: b :: c :: Empty()
 }
 
 case class Four[A](a: A, b: A, c: A, d: A) extends Digit[A] {
@@ -142,6 +177,7 @@ case class Four[A](a: A, b: A, c: A, d: A) extends Digit[A] {
   def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(f(z, a), b), c), d)
   def head = a
   def tail = Some(Digit(b, c, d))
+  def toTree = a :: b :: c :: d :: Empty()
 }
 
 object Digit {
