@@ -1,4 +1,4 @@
-package net.jcazevedo.finger_tree
+package net.jcazevedo.phalange
 
 trait Node[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B

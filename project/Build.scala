@@ -5,15 +5,14 @@ import sbtassembly.Plugin._
 import AssemblyKeys._
 
 object ProjectBuild extends Build {
-  lazy val project = "finger-trees"
+  lazy val project = "phalange"
 
   lazy val root = Project(id = project,
                           base = file("."),
                           settings = Project.defaultSettings ++ assemblySettings).settings(
-
+    organization := "net.jcazevedo",
+    version := "0.1-SNAPSHOT",
     scalaVersion := "2.9.2",
-
-    version := "0.1",
 
     resolvers ++= Seq(
       "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
@@ -23,7 +22,7 @@ object ProjectBuild extends Build {
     ),
 
     libraryDependencies ++= Seq(
-      "org.specs2"                    %% "specs2"             % "1.11"   % "test"
+      "org.specs2" %% "specs2" % "1.11" % "test"
     ),
 
     scalacOptions ++= Seq("-deprecation", "-unchecked")

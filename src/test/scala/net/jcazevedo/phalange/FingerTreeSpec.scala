@@ -1,4 +1,5 @@
-import net.jcazevedo.finger_tree._
+package net.jcazevedo.phalange
+
 import org.specs2.mutable._
 import org.specs2.specification.AfterExample
 
