@@ -1,6 +1,6 @@
 # Finger Trees
 
-This is a WIP implementation of Finger Trees as proposed by Ralf Hinze and Ross Paterson in the paper [[http://www.soi.city.ac.uk/~ross/papers/FingerTree.pdf]["Finger trees: a simple general-purpose data structure"]]
+This is a WIP implementation of Finger Trees as proposed by Ralf Hinze and Ross Paterson in the paper ["Finger trees: a simple general-purpose data structure"](http://www.soi.city.ac.uk/~ross/papers/FingerTree.pdf)
 
 ## License
 
