@@ -36,31 +36,19 @@ class FingerTreeSpec extends Specification {
     "support cons operation" in {
       val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
 
-      val l = f.foldRight(List[Char]()) { (c, l) =>
-        c :: l
-      }
-
-      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
+      f.toString mustEqual "thisisnotatree"
     }
 
     "support snoc operation" in {
       val f: FingerTree[Char] = Empty() + 't' + 'h' + 'i' + 's' + 'i' + 's' + 'n' + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
 
-      val l = f.foldRight(List[Char]()) { (c, l) =>
-        c :: l
-      }
-
-      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
+      f.toString mustEqual "thisisnotatree"
     }
 
     "support cons and snoc operations intertwined" in {
       val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty() + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
 
-      val l = f.foldRight(List[Char]()) { (c, l) =>
-        c :: l
-      }
-
-      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
+      f.toString mustEqual "thisisnotatree"
     }
 
     "support toList method" in {
@@ -84,10 +72,10 @@ class FingerTreeSpec extends Specification {
       val d3 = Digit('t', 'h', 'i')
       val d4 = Digit('t', 'h', 'i', 's')
 
-      d1.toTree mustEqual 't' :: Empty()
-      d2.toTree mustEqual 't' :: 'h' :: Empty()
-      d3.toTree mustEqual 't' :: 'h' :: 'i' :: Empty()
-      d4.toTree mustEqual 't' :: 'h' :: 'i' :: 's' :: Empty()
+      d1.toTree.toString mustEqual "t"
+      d2.toTree.toString mustEqual "th"
+      d3.toTree.toString mustEqual "thi"
+      d4.toTree.toString mustEqual "this"
     }
 
     "support toDigit method in nodes" in {

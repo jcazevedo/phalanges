@@ -30,10 +30,8 @@ trait FingerTree[A] {
   def +(a: A): FingerTree[A]
   def viewL: Option[(A, FingerTree[A])]
   def viewR: Option[(FingerTree[A], A)]
-
-  def toList = foldRight(List[A]()) { (h, l) =>
-    h :: l
-  }
+  def toList = foldRight (List[A]()) (_ :: _)
+  override def toString = toList mkString ""
 
   def isEmpty = viewL match {
     case None => true
@@ -86,37 +84,17 @@ case class Single[A](x: A) extends FingerTree[A] {
 case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
      extends FingerTree[A] {
   def foldRight[B](z: B)(f: (A, B) => B): B = {
-    def f1(d: Digit[A], b: B) = {
-      d.foldRight(b) {
-        (a, b) => f(a, b)
-      }
-    }
-
-    def f2(t: FingerTree[Node[A]], b: B) = {
-      t.foldRight(b) {
-        (a, b) => a.foldRight(b) {
-          (a, b) => f(a, b)
-        }
-      }
-    }
+    def f1(d: Digit[A], b: B) = (d foldRight(b)) (f(_, _))
+    def f2(t: FingerTree[Node[A]], b: B): B =
+      (t foldRight(b)) ((a, b) => (a foldRight(b)) (f(_, _)))
 
     f1(pr, f2(m, f1(sf, z)))
   }
 
   def foldLeft[B](z: B)(f: (B, A) => B): B = {
-    def f1(b: B, d: Digit[A]) = {
-      d.foldLeft(b) {
-        (b, a) => f(b, a)
-      }
-    }
-
-    def f2(b: B, t: FingerTree[Node[A]]) = {
-      t.foldLeft(b) {
-        (b, a) => a.foldLeft(b) {
-          (b, a) => f(b, a)
-        }
-      }
-    }
+    def f1(b: B, d: Digit[A]) = (d foldLeft(b)) (f(_, _))
+    def f2(b: B, t: FingerTree[Node[A]]): B =
+      (t foldLeft(b)) ((b, a) => (a foldLeft(b)) (f(_, _)))
 
     f1(f2(f1(z, pr), m), sf)
   }
