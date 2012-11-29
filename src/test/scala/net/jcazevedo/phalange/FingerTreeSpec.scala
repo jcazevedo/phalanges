@@ -59,8 +59,10 @@ class FingerTreeSpec extends Specification {
     }
 
     "support toTree method" in {
+      import FingerTree.Implicits._
+
       val l = List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
-      val f = FingerTree.toTree(l)
+      val f: FingerTree[Char] = l
       val fl = f.toList
 
       fl mustEqual l

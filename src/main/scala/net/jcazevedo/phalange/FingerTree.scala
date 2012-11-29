@@ -64,9 +64,11 @@ trait FingerTree[A] {
 }
 
 object FingerTree {
-  def toTree[A](s: Traversable[A]) = {
-    s.foldRight[FingerTree[A]](Empty[A]()) { (h, t) =>
-      h :: t
+  object Implicits {
+    implicit def toTree[A](s: Traversable[A]): FingerTree[A] = {
+      s.foldRight[FingerTree[A]](Empty[A]()) { (h, t) =>
+        h :: t
+      }
     }
   }
 }
