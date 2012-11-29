@@ -169,5 +169,75 @@ class FingerTreeSpec extends Specification {
       f3.tailR mustEqual Deep(One('t'), Empty[Node[Char]](), One('h'))
       f4.tailR mustEqual Deep(Two('t', 'h'), Empty[Node[Char]](), One('i'))
     }
+
+    "support concatenation to empty finger tree" in {
+      val t1 = Empty[Char]()
+      val t2 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "thisisnotatree"
+    }
+
+    "support concatenation of empty finger tree" in {
+      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val t2 = Empty[Char]()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "thisisnotatree"
+    }
+
+    "support concatenation to single element finger tree" in {
+      val t1 = 't' :: Empty()
+      val t2 = 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "thisisnotatree"
+    }
+
+    "support concatention to empty finger tree of single element finger tree" in {
+      val t1 = Empty[Char]()
+      val t2 = 't' :: Empty()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "t"
+    }
+
+    "support concatenation to single element finger tree of empty finger tree" in {
+      val t1 = 't' :: Empty()
+      val t2 = Empty[Char]()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "t"
+    }
+
+    "support concatenation of single element finger tree" in {
+      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: Empty()
+      val t2 = 'e' :: Empty()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "thisisnotatree"
+    }
+
+    "support concatenation of deep finger trees" in {
+      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty()
+      val t2 = 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+
+      val t = t1 ++ t2
+      t.toString mustEqual "thisisnotatree"
+    }
+
+    "support concatenation on various splits of the string" in {
+      def buildFingerTree(s: String) =
+        s.foldRight[FingerTree[Char]](Empty[Char]()) (_ :: _)
+
+      val s = "thisisnotatree"
+      (1 to s.length - 1).forall { i =>
+        val s1 = s.substring(0, i)
+        val s2 = s.substring(i)
+
+        val t = buildFingerTree(s1) ++ buildFingerTree(s2)
+        t.toString mustEqual "thisisnotatree"
+      }
+    }
   }
 }
