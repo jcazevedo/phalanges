@@ -8,7 +8,7 @@ class FingerTreeSpec extends Specification {
     "support fold right operation" in {
       val f: FingerTree[Char] = Deep(Digit('t', 'h'),
                                       Deep(Digit(Node('i', 's'), Node('i', 's')),
-                                           Empty(),
+                                           Empty,
                                            Digit(Node('n', 'o', 't'), Node('a', 't'))),
                                       Digit('r', 'e', 'e'))
 
@@ -22,7 +22,7 @@ class FingerTreeSpec extends Specification {
     "support fold left operation" in {
       val f: FingerTree[Char] = Deep(Digit('t', 'h'),
                                       Deep(Digit(Node('i', 's'), Node('i', 's')),
-                                           Empty(),
+                                           Empty,
                                            Digit(Node('n', 'o', 't'), Node('a', 't'))),
                                       Digit('r', 'e', 'e'))
 
@@ -34,25 +34,25 @@ class FingerTreeSpec extends Specification {
     }
 
     "support cons operation" in {
-      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
 
       f.toString mustEqual "thisisnotatree"
     }
 
     "support snoc operation" in {
-      val f: FingerTree[Char] = Empty() + 't' + 'h' + 'i' + 's' + 'i' + 's' + 'n' + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
+      val f: FingerTree[Char] = Empty + 't' + 'h' + 'i' + 's' + 'i' + 's' + 'n' + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
 
       f.toString mustEqual "thisisnotatree"
     }
 
     "support cons and snoc operations intertwined" in {
-      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty() + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
+      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
 
       f.toString mustEqual "thisisnotatree"
     }
 
     "support toList method" in {
-      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val f: FingerTree[Char] = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
       val l = f.toList
 
       l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
@@ -89,46 +89,46 @@ class FingerTreeSpec extends Specification {
     }
 
     "support viewL method" in {
-      val f1 = Empty()
-      val f2 = 't' :: Empty()
-      val f3 = 't' :: 'h' :: Empty()
-      val f4 = 't' :: 'h' :: 'i' :: Empty()
-      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+      val f1 = Empty
+      val f2 = 't' :: Empty
+      val f3 = 't' :: 'h' :: Empty
+      val f4 = 't' :: 'h' :: 'i' :: Empty
+      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty
 
       f1.viewL mustEqual None
-      f2.viewL mustEqual Some(('t', Empty()))
+      f2.viewL mustEqual Some(('t', Empty))
       f3.viewL mustEqual Some(('t', Single('h')))
-      f4.viewL mustEqual Some(('t', Deep(One('h'), Empty[Node[Char]](), One('i'))))
-      f5.viewL mustEqual Some(('t', Deep(Two('h', 'i'), Empty[Node[Char]](), One('s'))))
+      f4.viewL mustEqual Some(('t', Deep(One('h'), Empty, One('i'))))
+      f5.viewL mustEqual Some(('t', Deep(Two('h', 'i'), Empty, One('s'))))
     }
 
     "support viewR method" in {
-      val f1 = Empty()
-      val f2 = 't' :: Empty()
-      val f3 = 't' :: 'h' :: Empty()
-      val f4 = 't' :: 'h' :: 'i' :: Empty()
-      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+      val f1 = Empty
+      val f2 = 't' :: Empty
+      val f3 = 't' :: 'h' :: Empty
+      val f4 = 't' :: 'h' :: 'i' :: Empty
+      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty
 
       f1.viewR mustEqual None
-      f2.viewR mustEqual Some((Empty(), 't'))
+      f2.viewR mustEqual Some((Empty, 't'))
       f3.viewR mustEqual Some((Single('t'), 'h'))
-      f4.viewR mustEqual Some((Deep(One('t'), Empty[Node[Char]](), One('h')), 'i'))
-      f5.viewR mustEqual Some((Deep(Two('t', 'h'), Empty[Node[Char]](), One('i')), 's'))
+      f4.viewR mustEqual Some((Deep(One('t'), Empty, One('h')), 'i'))
+      f5.viewR mustEqual Some((Deep(Two('t', 'h'), Empty, One('i')), 's'))
     }
 
     "support isEmpty method" in {
-      val f1 = Empty()
-      val f2 = 't' :: Empty()
+      val f1 = Empty
+      val f2 = 't' :: Empty
 
       f1.isEmpty must beTrue
       f2.isEmpty must beFalse
     }
 
     "support headL method" in {
-      val f1 = 't' :: Empty()
-      val f2 = 't' :: 'h' :: Empty()
-      val f3 = 't' :: 'h' :: 'i' :: Empty()
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+      val f1 = 't' :: Empty
+      val f2 = 't' :: 'h' :: Empty
+      val f3 = 't' :: 'h' :: 'i' :: Empty
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
 
       f1.headL mustEqual 't'
       f2.headL mustEqual 't'
@@ -137,10 +137,10 @@ class FingerTreeSpec extends Specification {
     }
 
     "support headR method" in {
-      val f1 = 't' :: Empty()
-      val f2 = 't' :: 'h' :: Empty()
-      val f3 = 't' :: 'h' :: 'i' :: Empty()
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+      val f1 = 't' :: Empty
+      val f2 = 't' :: 'h' :: Empty
+      val f3 = 't' :: 'h' :: 'i' :: Empty
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
 
       f1.headR mustEqual 't'
       f2.headR mustEqual 'h'
@@ -149,80 +149,80 @@ class FingerTreeSpec extends Specification {
     }
 
     "support tailL method" in {
-      val f1 = 't' :: Empty()
-      val f2 = 't' :: 'h' :: Empty()
-      val f3 = 't' :: 'h' :: 'i' :: Empty()
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+      val f1 = 't' :: Empty
+      val f2 = 't' :: 'h' :: Empty
+      val f3 = 't' :: 'h' :: 'i' :: Empty
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
 
-      f1.tailL mustEqual Empty()
+      f1.tailL mustEqual Empty
       f2.tailL mustEqual Single('h')
-      f3.tailL mustEqual Deep(One('h'), Empty[Node[Char]](), One('i'))
-      f4.tailL mustEqual Deep(Two('h', 'i'), Empty[Node[Char]](), One('s'))
+      f3.tailL mustEqual Deep(One('h'), Empty, One('i'))
+      f4.tailL mustEqual Deep(Two('h', 'i'), Empty, One('s'))
     }
 
     "support tailR method" in {
-      val f1 = 't' :: Empty()
-      val f2 = 't' :: 'h' :: Empty()
-      val f3 = 't' :: 'h' :: 'i' :: Empty()
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty()
+      val f1 = 't' :: Empty
+      val f2 = 't' :: 'h' :: Empty
+      val f3 = 't' :: 'h' :: 'i' :: Empty
+      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
 
-      f1.tailR mustEqual Empty()
+      f1.tailR mustEqual Empty
       f2.tailR mustEqual Single('t')
-      f3.tailR mustEqual Deep(One('t'), Empty[Node[Char]](), One('h'))
-      f4.tailR mustEqual Deep(Two('t', 'h'), Empty[Node[Char]](), One('i'))
+      f3.tailR mustEqual Deep(One('t'), Empty, One('h'))
+      f4.tailR mustEqual Deep(Two('t', 'h'), Empty, One('i'))
     }
 
     "support concatenation to empty finger tree" in {
-      val t1 = Empty[Char]()
-      val t2 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val t1 = Empty
+      val t2 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "thisisnotatree"
     }
 
     "support concatenation of empty finger tree" in {
-      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
-      val t2 = Empty[Char]()
+      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
+      val t2 = Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "thisisnotatree"
     }
 
     "support concatenation to single element finger tree" in {
-      val t1 = 't' :: Empty()
-      val t2 = 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val t1 = 't' :: Empty
+      val t2 = 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "thisisnotatree"
     }
 
     "support concatention to empty finger tree of single element finger tree" in {
-      val t1 = Empty[Char]()
-      val t2 = 't' :: Empty()
+      val t1 = Empty
+      val t2 = 't' :: Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "t"
     }
 
     "support concatenation to single element finger tree of empty finger tree" in {
-      val t1 = 't' :: Empty()
-      val t2 = Empty[Char]()
+      val t1 = 't' :: Empty
+      val t2 = Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "t"
     }
 
     "support concatenation of single element finger tree" in {
-      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: Empty()
-      val t2 = 'e' :: Empty()
+      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: Empty
+      val t2 = 'e' :: Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "thisisnotatree"
     }
 
     "support concatenation of deep finger trees" in {
-      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty()
-      val t2 = 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty()
+      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty
+      val t2 = 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
 
       val t = t1 ++ t2
       t.toString mustEqual "thisisnotatree"
@@ -230,7 +230,7 @@ class FingerTreeSpec extends Specification {
 
     "support concatenation on various splits of the string" in {
       def buildFingerTree(s: String) =
-        s.foldRight[FingerTree[Char]](Empty[Char]()) (_ :: _)
+        s.foldRight[FingerTree[Char]](Empty) (_ :: _)
 
       val s = "thisisnotatree"
       (1 to s.length - 1).forall { i =>

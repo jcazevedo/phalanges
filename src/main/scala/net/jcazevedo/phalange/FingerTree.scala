@@ -1,41 +1,11 @@
 package net.jcazevedo.phalange
 
-trait Node[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B
-  def foldLeft[B](z: B)(f: (B, A) => B): B
-  def toDigit: Digit[A]
-}
-
-case class Node2[A](a: A, b: A) extends Node[A] {
-  def foldRight[B](z: B)(f: (A, B) => B) = f(a, f(b, z))
-  def foldLeft[B](z: B)(f: (B, A) => B) = f(f(z, a), b)
-  def toDigit = Two(a, b)
-}
-
-case class Node3[A](a: A, b: A, c: A) extends Node[A] {
-  def foldRight[B](z: B)(f: (A, B) => B) = f(a, f(b, f(c, z)))
-  def foldLeft[B](z: B)(f: (B, A) => B) = f(f(f(z, a), b), c)
-  def toDigit = Three(a, b, c)
-}
-
-object Node {
-  def apply[A](a: A, b: A): Node[A] = Node2(a, b)
-  def apply[A](a: A, b: A, c: A): Node[A] = Node3(a, b, c)
-  def nodes[A](s: List[A]): List[Node[A]] = s match {
-    case a :: b :: Nil => Node(a, b) :: Nil
-    case a :: b :: c :: Nil => Node(a, b, c) :: Nil
-    case a :: b :: c :: d :: Nil => Node(a, b) :: Node(c, d) :: Nil
-    case a :: b :: c :: xs => Node(a, b, c) :: nodes(xs)
-    case _ => List[Node[A]]()
-  }
-}
-
-trait FingerTree[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B
-  def foldLeft[B](z: B)(f: (B, A) => B): B
-  def ::(a: A): FingerTree[A]
-  def +(a: A): FingerTree[A]
-  def ++(xs: FingerTree[A], ts: List[A] = List()): FingerTree[A]
+trait FingerTree[+A] {
+  def foldRight[B >: A, C](z: C)(f: (B, C) => C): C
+  def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C
+  def ::[B >: A](a: B): FingerTree[B]
+  def +[B >: A](a: B): FingerTree[B]
+  def ++[B >: A](xs: FingerTree[B], ts: List[B] = List()): FingerTree[B]
   def viewL: Option[(A, FingerTree[A])]
   def viewR: Option[(FingerTree[A], A)]
   def toList = foldRight (List[A]()) (_ :: _)
@@ -66,61 +36,61 @@ trait FingerTree[A] {
 object FingerTree {
   object Implicits {
     implicit def toTree[A](s: Traversable[A]): FingerTree[A] = {
-      s.foldRight[FingerTree[A]](Empty[A]()) { (h, t) =>
+      s.foldRight[FingerTree[A]](Empty) { (h, t) =>
         h :: t
       }
     }
   }
 }
 
-case class Empty[A]() extends FingerTree[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = z
-  def foldLeft[B](z: B)(f: (B, A) => B): B = z
-  def ::(a: A): FingerTree[A] = Single(a)
-  def +(a: A): FingerTree[A] = Single(a)
-  def ++(xs: FingerTree[A], ts: List[A]): FingerTree[A] =
+case object Empty extends FingerTree[Nothing] {
+  def foldRight[B >: Nothing, C](z: C)(f: (B, C) => C): C = z
+  def foldLeft[B >: Nothing, C](z: C)(f: (C, B) => C): C = z
+  def ::[A](a: A): FingerTree[A] = Single(a)
+  def +[A](a: A): FingerTree[A] = Single(a)
+  def ++[A](xs: FingerTree[A], ts: List[A]): FingerTree[A] =
     (ts foldRight(xs)) (_ :: _)
   def viewL = None
   def viewR = None
 }
 
-case class Single[A](x: A) extends FingerTree[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = f(x, z)
-  def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, x)
-  def ::(a: A): FingerTree[A] = Deep(Digit(a), Empty(), Digit(x))
-  def +(a: A): FingerTree[A] = Deep(Digit(x), Empty(), Digit(a))
-  def ++(xs: FingerTree[A], ts: List[A]) =
+case class Single[+A](x: A) extends FingerTree[A] {
+  def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = f(x, z)
+  def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C = f(z, x)
+  def ::[B >: A](a: B): FingerTree[B] = Deep(Digit(a), Empty, Digit(x))
+  def +[B >: A](a: B): FingerTree[B] = Deep(Digit(x), Empty, Digit(a))
+  def ++[B >: A](xs: FingerTree[B], ts: List[B]) =
     xs match {
-      case _: Empty[_] => (ts.foldLeft[FingerTree[A]](this)) (_ + _)
-      case s: Single[_] => (ts.foldLeft[FingerTree[A]](this)) (_ + _) + s.x
+      case Empty => (ts.foldLeft[FingerTree[B]](this)) (_ + _)
+      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this)) (_ + _) + s.x
       case _ => x :: (ts foldRight(xs)) (_ :: _)
     }
-  def viewL = Some(x, Empty[A]())
-  def viewR = Some(Empty[A](), x)
+  def viewL = Some(x, Empty)
+  def viewR = Some(Empty, x)
 }
 
 // TODO: It is necessary to suspend the middle subtree, so only O(log n)
 // suspensions are required in a tree of size n. Is it possible to do that in a
 // case class parameter?
-case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
-     extends FingerTree[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = {
-    def f1(d: Digit[A], b: B) = (d foldRight(b)) (f(_, _))
-    def f2(t: FingerTree[Node[A]], b: B): B =
+case class Deep[+A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
+    extends FingerTree[A] {
+  def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = {
+    def f1(d: Digit[B], b: C) = (d foldRight(b)) (f(_, _))
+    def f2(t: FingerTree[Node[B]], b: C): C =
       (t foldRight(b)) ((a, b) => (a foldRight(b)) (f(_, _)))
 
     f1(pr, f2(m, f1(sf, z)))
   }
 
-  def foldLeft[B](z: B)(f: (B, A) => B): B = {
-    def f1(b: B, d: Digit[A]) = (d foldLeft(b)) (f(_, _))
-    def f2(b: B, t: FingerTree[Node[A]]): B =
+  def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C = {
+    def f1(b: C, d: Digit[B]) = (d foldLeft(b)) (f(_, _))
+    def f2(b: C, t: FingerTree[Node[B]]): C =
       (t foldLeft(b)) ((b, a) => (a foldLeft(b)) (f(_, _)))
 
     f1(f2(f1(z, pr), m), sf)
   }
 
-  def ::(a: A): FingerTree[A] = {
+  def ::[B >: A](a: B): FingerTree[B] = {
     pr match {
       case Four(b, c, d, e) => Deep(Digit(a, b), (Node(c, d, e) :: m), sf)
       case Three(b, c, d) => Deep(Digit(a, b, c, d), m, sf)
@@ -129,7 +99,7 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
     }
   }
 
-  def +(a: A): FingerTree[A] = {
+  def +[B >: A](a: B): FingerTree[B] = {
     sf match {
       case Four(e, d, c, b) => Deep(pr, m + Node(e, d, c), Digit(b, a))
       case Three(d, c, b) => Deep(pr, m, Digit(d, c, b, a))
@@ -138,17 +108,17 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
     }
   }
 
-  def ++(xs: FingerTree[A], ts: List[A]): FingerTree[A] =
+  def ++[B >: A](xs: FingerTree[B], ts: List[B]): FingerTree[B] =
     xs match {
-      case _: Empty[_] => (ts.foldLeft[FingerTree[A]](this)) (_ + _)
-      case s: Single[_] => (ts.foldLeft[FingerTree[A]](this)) (_ + _) + s.x
+      case Empty => (ts.foldLeft[FingerTree[B]](this)) (_ + _)
+      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this)) (_ + _) + s.x
       case Deep(pr2, m2, sf2) => Deep(pr, m ++ (m2, Node.nodes(sf.toList ++ ts ++ pr2.toList)), sf2)
     }
 
   def viewL = Some((pr.headL, deepL(pr.tailL, m, sf)))
   def viewR = Some((deepR(pr, m, sf.tailR), sf.headR))
 
-  def deepL(pr: Option[Digit[A]], m: FingerTree[Node[A]], sf: Digit[A]) = {
+  def deepL[B >: A](pr: Option[Digit[B]], m: FingerTree[Node[B]], sf: Digit[B]): FingerTree[B] = {
     pr match {
       case Some(d) => Deep(d, m, sf)
       case None => m.viewL match {
@@ -158,7 +128,7 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
     }
   }
 
-  def deepR(pr: Digit[A], m: FingerTree[Node[A]], sf: Option[Digit[A]]) = {
+  def deepR[B >: A](pr: Digit[B], m: FingerTree[Node[B]], sf: Option[Digit[B]]): FingerTree[B] = {
     sf match {
       case Some(d) => Deep(pr, m, d)
       case None => m.viewR match {
@@ -167,62 +137,4 @@ case class Deep[A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
       }
     }
   }
-}
-
-trait Digit[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B
-  def foldLeft[B](z: B)(f: (B, A) => B): B
-  def headL: A
-  def tailL: Option[Digit[A]]
-  def headR: A
-  def tailR: Option[Digit[A]]
-  def toTree: FingerTree[A]
-  def toList = foldRight(List[A]()) (_ :: _)
-}
-
-case class One[A](a: A) extends Digit[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = f(a, z)
-  def foldLeft[B](z: B)(f: (B, A) => B): B = f(z, a)
-  def headL = a
-  def tailL = None
-  def headR = a
-  def tailR = None
-  def toTree = a :: Empty()
-}
-
-case class Two[A](a: A, b: A) extends Digit[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, z))
-  def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(z, a), b)
-  def headL = a
-  def tailL = Some(Digit(b))
-  def headR = b
-  def tailR = Some(Digit(a))
-  def toTree = a :: b :: Empty()
-}
-
-case class Three[A](a: A, b: A, c: A) extends Digit[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, f(c, z)))
-  def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(z, a), b), c)
-  def headL = a
-  def tailL = Some(Digit(b, c))
-  def headR = c
-  def tailR = Some(Digit(a, b))
-  def toTree = a :: b :: c :: Empty()
-}
-
-case class Four[A](a: A, b: A, c: A, d: A) extends Digit[A] {
-  def foldRight[B](z: B)(f: (A, B) => B): B = f(a, f(b, f(c, f(d, z))))
-  def foldLeft[B](z: B)(f: (B, A) => B): B = f(f(f(f(z, a), b), c), d)
-  def headL = a
-  def tailL = Some(Digit(b, c, d))
-  def headR = d
-  def tailR = Some(Digit(a, b, c))
-  def toTree = a :: b :: c :: d :: Empty()
-}
-
-object Digit {
-  def apply[A](a: A): Digit[A] = One(a)
-  def apply[A](a: A, b: A): Digit[A] = Two(a, b)
-  def apply[A](a: A, b: A, c: A): Digit[A] = Three(a, b, c)
-  def apply[A](a: A, b: A, c: A, d: A): Digit[A] = Four(a, b, c, d)
 }
