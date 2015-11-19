@@ -3,4 +3,5 @@ target/
 .ensime
 .lib
 .ensime_lucene
+.ensime_cache
 *~
