@@ -8,7 +8,7 @@ trait FingerTree[+A] {
   def ++[B >: A](xs: FingerTree[B], ts: List[B] = List()): FingerTree[B]
   def viewL: Option[(A, FingerTree[A])]
   def viewR: Option[(FingerTree[A], A)]
-  def toList = foldRight (List[A]()) (_ :: _)
+  def toList = foldRight(List[A]())(_ :: _)
   override def toString = toList mkString ""
 
   def isEmpty = viewL match {
@@ -49,7 +49,7 @@ case object Empty extends FingerTree[Nothing] {
   def ::[A](a: A): FingerTree[A] = Single(a)
   def +[A](a: A): FingerTree[A] = Single(a)
   def ++[A](xs: FingerTree[A], ts: List[A]): FingerTree[A] =
-    (ts foldRight(xs)) (_ :: _)
+    (ts foldRight (xs))(_ :: _)
   def viewL = None
   def viewR = None
 }
@@ -61,9 +61,9 @@ case class Single[+A](x: A) extends FingerTree[A] {
   def +[B >: A](a: B): FingerTree[B] = Deep(Digit(x), Empty, Digit(a))
   def ++[B >: A](xs: FingerTree[B], ts: List[B]) =
     xs match {
-      case Empty => (ts.foldLeft[FingerTree[B]](this)) (_ + _)
-      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this)) (_ + _) + s.x
-      case _ => x :: (ts foldRight(xs)) (_ :: _)
+      case Empty => (ts.foldLeft[FingerTree[B]](this))(_ + _)
+      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
+      case _ => x :: (ts foldRight (xs))(_ :: _)
     }
   def viewL = Some(x, Empty)
   def viewR = Some(Empty, x)
@@ -75,17 +75,17 @@ case class Single[+A](x: A) extends FingerTree[A] {
 case class Deep[+A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
     extends FingerTree[A] {
   def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = {
-    def f1(d: Digit[B], b: C) = (d foldRight(b)) (f(_, _))
+    def f1(d: Digit[B], b: C) = (d foldRight (b))(f(_, _))
     def f2(t: FingerTree[Node[B]], b: C): C =
-      (t foldRight(b)) ((a, b) => (a foldRight(b)) (f(_, _)))
+      (t foldRight (b))((a, b) => (a foldRight (b))(f(_, _)))
 
     f1(pr, f2(m, f1(sf, z)))
   }
 
   def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C = {
-    def f1(b: C, d: Digit[B]) = (d foldLeft(b)) (f(_, _))
+    def f1(b: C, d: Digit[B]) = (d foldLeft (b))(f(_, _))
     def f2(b: C, t: FingerTree[Node[B]]): C =
-      (t foldLeft(b)) ((b, a) => (a foldLeft(b)) (f(_, _)))
+      (t foldLeft (b))((b, a) => (a foldLeft (b))(f(_, _)))
 
     f1(f2(f1(z, pr), m), sf)
   }
@@ -110,8 +110,8 @@ case class Deep[+A](pr: Digit[A], m: FingerTree[Node[A]], sf: Digit[A])
 
   def ++[B >: A](xs: FingerTree[B], ts: List[B]): FingerTree[B] =
     xs match {
-      case Empty => (ts.foldLeft[FingerTree[B]](this)) (_ + _)
-      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this)) (_ + _) + s.x
+      case Empty => (ts.foldLeft[FingerTree[B]](this))(_ + _)
+      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
       case Deep(pr2, m2, sf2) => Deep(pr, m ++ (m2, Node.nodes(sf.toList ++ ts ++ pr2.toList)), sf2)
     }
 

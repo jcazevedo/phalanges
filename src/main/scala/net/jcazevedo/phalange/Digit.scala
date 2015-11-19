@@ -8,7 +8,7 @@ trait Digit[+A] {
   def headR: A
   def tailR: Option[Digit[A]]
   def toTree: FingerTree[A]
-  def toList = foldRight(List[A]()) (_ :: _)
+  def toList = foldRight(List[A]())(_ :: _)
 }
 
 case class One[+A](a: A) extends Digit[A] {

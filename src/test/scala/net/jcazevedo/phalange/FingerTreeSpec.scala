@@ -1,7 +1,6 @@
 package net.jcazevedo.phalange
 
 import org.specs2.mutable._
-import org.specs2.specification.AfterExample
 
 class FingerTreeSpec extends Specification {
   "A Finger Tree" should {
@@ -252,7 +251,7 @@ class FingerTreeSpec extends Specification {
 
     "support concatenation on various splits of the string" in {
       def buildFingerTree(s: String) =
-        s.foldRight[FingerTree[Char]](Empty) (_ :: _)
+        s.foldRight[FingerTree[Char]](Empty)(_ :: _)
 
       val s = "thisisnotatree"
       (1 to s.length - 1).forall { i =>
