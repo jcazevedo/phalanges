@@ -11,16 +11,12 @@ class FingerTreeSpec extends Specification {
           Deep(
             Digit(
               Node('i', 's'),
-              Node('i', 's')
-            ),
+              Node('i', 's')),
             Empty,
             Digit(
               Node('n', 'o', 't'),
-              Node('a', 't')
-            )
-          ),
-          Digit('r', 'e', 'e')
-        )
+              Node('a', 't'))),
+          Digit('r', 'e', 'e'))
 
       val l = f.foldRight(List[Char]()) { (c, l) =>
         c :: l
@@ -36,16 +32,12 @@ class FingerTreeSpec extends Specification {
           Deep(
             Digit(
               Node('i', 's'),
-              Node('i', 's')
-            ),
+              Node('i', 's')),
             Empty,
             Digit(
               Node('n', 'o', 't'),
-              Node('a', 't')
-            )
-          ),
-          Digit('r', 'e', 'e')
-        )
+              Node('a', 't'))),
+          Digit('r', 'e', 'e'))
 
       val l = f.foldLeft(List[Char]()) { (l, c) =>
         l ++ List(c)
