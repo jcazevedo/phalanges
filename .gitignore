@@ -1,7 +1,8 @@
-target/
+*~
 .DS_Store
 .ensime
-.lib
-.ensime_lucene
 .ensime_cache
-*~
+.ensime_lucene
+.idea
+.lib
+target/
