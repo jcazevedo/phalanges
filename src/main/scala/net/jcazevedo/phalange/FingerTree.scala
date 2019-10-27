@@ -70,7 +70,7 @@ case class Single[+A](x: A) extends FingerTree[A] {
 }
 
 class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit[A])
-    extends FingerTree[A] {
+  extends FingerTree[A] {
   def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = {
     def f1(d: Digit[B], b: C) = (d foldRight (b))(f(_, _))
     def f2(t: FingerTree[Node[B]], b: C): C =

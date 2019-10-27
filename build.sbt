@@ -21,20 +21,17 @@ scalacOptions ++= Seq(
 scalacOptions in (Compile, console) ~= (_ filterNot (_ == "-Ywarn-unused-import"))
 scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value
 
-scalariformSettings
-
-ScalariformKeys.preferences := ScalariformKeys.preferences.value
-  .setPreference(AlignParameters, true)
-  .setPreference(DoubleIndentClassDeclaration, true)
+scalariformPreferences := scalariformPreferences.value
+  .setPreference(DanglingCloseParenthesis, Prevent)
+  .setPreference(DoubleIndentConstructorArguments, true)
+  .setPreference(SpacesAroundMultiImports, true)
 
 publishMavenStyle := true
 
-publishTo <<= version { v =>
+publishTo := {
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT"))
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 publishArtifact in Test := false
