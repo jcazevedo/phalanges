@@ -1,3 +1,5 @@
+import sbt.CrossVersion
+import sbt.Keys.scalaVersion
 import scalariform.formatter.preferences._
 
 name := "phalange"
@@ -6,19 +8,48 @@ organization := "net.jcazevedo"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.13.0"
+
+crossScalaVersions := Seq("2.11.12", "2.12.10", "2.13.0")
 
 libraryDependencies ++= Seq(
-  "org.specs2"             %% "specs2-core"   % "3.6.5"  % "test")
+  "org.specs2" %% "specs2-core" % "4.8.0" % "test")
 
-scalacOptions ++= Seq(
-  "-deprecation",
-  "-unchecked",
-  "-feature",
-  "-language:implicitConversions",
-  "-Ywarn-unused-import")
+scalacOptions ++= {
+  val allVersionFlags = List(
+    "-encoding", "UTF-8", // yes, this is 2 args
+    "-feature",
+    "-unchecked",
+    "-Ywarn-dead-code",
+    "-Ywarn-numeric-widen")
 
-scalacOptions in (Compile, console) ~= (_ filterNot (_ == "-Ywarn-unused-import"))
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 11)) =>
+      allVersionFlags ++ List(
+        "-deprecation",
+        "-Xlint",
+        "-Xfatal-warnings",
+        "-Yno-adapted-args",
+        "-Ywarn-unused-import")
+
+    case Some((2, 12)) =>
+      allVersionFlags ++ List(
+        "-deprecation",
+        "-Xlint:_,-unused",
+        "-Xfatal-warnings",
+        "-Yno-adapted-args",
+        "-Ywarn-unused:_,-implicits")
+
+    case Some((2, 13)) =>
+      allVersionFlags ++ List(
+        "-Ywarn-unused:_,-implicits")
+
+    case _ =>
+      allVersionFlags
+  }
+}
+
+scalacOptions in (Compile, console) --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits")
 scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value
 
 scalariformPreferences := scalariformPreferences.value
