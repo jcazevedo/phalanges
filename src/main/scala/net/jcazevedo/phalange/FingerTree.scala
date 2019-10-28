@@ -1,5 +1,7 @@
 package net.jcazevedo.phalange
 
+import scala.language.implicitConversions
+
 trait FingerTree[+A] {
   def foldRight[B >: A, C](z: C)(f: (B, C) => C): C
   def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C
@@ -65,8 +67,8 @@ case class Single[+A](x: A) extends FingerTree[A] {
       case s: Single[_] => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
       case _ => x :: (ts foldRight (xs))(_ :: _)
     }
-  def viewL = Some(x, Empty)
-  def viewR = Some(Empty, x)
+  def viewL = Some((x, Empty))
+  def viewR = Some((Empty, x))
 }
 
 class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit[A])
