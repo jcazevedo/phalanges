@@ -49,8 +49,8 @@ scalacOptions ++= {
   }
 }
 
-scalacOptions in (Compile, console) --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits")
-scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value
+Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits")
+Test / console / scalacOptions := (Compile / console / scalacOptions).value
 
 scalariformPreferences := scalariformPreferences.value
   .setPreference(DanglingCloseParenthesis, Prevent)
