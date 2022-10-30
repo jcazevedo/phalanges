@@ -8,9 +8,9 @@ organization := "net.jcazevedo"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.13.0"
+scalaVersion := "2.13.10"
 
-crossScalaVersions := Seq("2.12.10", "2.13.0")
+crossScalaVersions := Seq("2.12.17", "2.13.10")
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "4.8.0" % "test")

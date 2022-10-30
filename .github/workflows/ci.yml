@@ -13,9 +13,9 @@ jobs:
         scala: ['2.12', '2.13']
         include:
           - scala: '2.12'
-            scala-version: 2.12.10
+            scala-version: 2.12.17
           - scala: '2.13'
-            scala-version: 2.13.0
+            scala-version: 2.13.10
 
     steps:
       - name: Checkout repository
