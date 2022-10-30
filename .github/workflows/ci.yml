@@ -1,0 +1,47 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Scala ${{ matrix.scala }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        scala: ['2.11', '2.12', '2.13']
+        include:
+          - scala: '2.11'
+            scala-version: 2.11.12
+          - scala: '2.12'
+            scala-version: 2.12.10
+          - scala: '2.13'
+            scala-version: 2.13.0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK and sbt
+        uses: olafurpg/setup-scala@v13
+        with:
+          java-version: adopt@1.8
+
+      - name: Cache sbt
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier/cache/v1
+            ~/.cache/coursier/v1
+            ~/AppData/Local/Coursier/Cache/v1
+            ~/Library/Caches/Coursier/v1
+          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
+
+      - name: Compile
+        run: sbt ++${{ matrix.scala-version }} Test/compile
+
+      - name: Run tests
+        run: sbt ++${{ matrix.scala-version }} test
