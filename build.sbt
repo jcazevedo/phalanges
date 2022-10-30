@@ -10,7 +10,7 @@ version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.13.0"
 
-crossScalaVersions := Seq("2.11.12", "2.12.10", "2.13.0")
+crossScalaVersions := Seq("2.12.10", "2.13.0")
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "4.8.0" % "test")
@@ -24,14 +24,6 @@ scalacOptions ++= {
     "-Ywarn-numeric-widen")
 
   CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 11)) =>
-      allVersionFlags ++ List(
-        "-deprecation",
-        "-Xlint",
-        "-Xfatal-warnings",
-        "-Yno-adapted-args",
-        "-Ywarn-unused-import")
-
     case Some((2, 12)) =>
       allVersionFlags ++ List(
         "-deprecation",

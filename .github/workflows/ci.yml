@@ -10,10 +10,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        scala: ['2.11', '2.12', '2.13']
+        scala: ['2.12', '2.13']
         include:
-          - scala: '2.11'
-            scala-version: 2.11.12
           - scala: '2.12'
             scala-version: 2.12.10
           - scala: '2.13'
