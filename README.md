@@ -1,7 +1,7 @@
 # Phalange
 
-[![Build Status](https://travis-ci.org/jcazevedo/phalange.svg?branch=master)](https://travis-ci.org/jcazevedo/phalange)
-[![Coverage Status](https://coveralls.io/repos/jcazevedo/phalange/badge.svg?branch=master&service=github)](https://coveralls.io/github/jcazevedo/phalange?branch=master)
+![Build Status](https://github.com/github/docs/actions/workflows/ci.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/jcazevedo/phalange/badge.svg?branch=master)](https://coveralls.io/github/jcazevedo/phalange?branch=master)
 [![License](https://img.shields.io/dub/l/vibe-d.svg)](https://raw.githubusercontent.com/jcazevedo/phalange/master/LICENSE.md)
 
 Phalange is an implementation of finger trees as proposed by Ralf Hinze and Ross
