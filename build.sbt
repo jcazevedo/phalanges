@@ -1,6 +1,5 @@
 import sbt.CrossVersion
 import sbt.Keys.scalaVersion
-import scalariform.formatter.preferences._
 
 name := "phalange"
 
@@ -43,11 +42,6 @@ scalacOptions ++= {
 
 Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits")
 Test / console / scalacOptions := (Compile / console / scalacOptions).value
-
-scalariformPreferences := scalariformPreferences.value
-  .setPreference(DanglingCloseParenthesis, Prevent)
-  .setPreference(DoubleIndentConstructorArguments, true)
-  .setPreference(SpacesAroundMultiImports, true)
 
 publishMavenStyle := true
 
