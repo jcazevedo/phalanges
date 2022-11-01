@@ -14,7 +14,7 @@ trait FingerTree[+A] {
   override def toString = toList mkString ""
 
   def isEmpty = viewL match {
-    case None => true
+    case None         => true
     case Some((_, _)) => false
   }
 
@@ -63,16 +63,15 @@ case class Single[+A](x: A) extends FingerTree[A] {
   def +[B >: A](a: B): FingerTree[B] = Deep(Digit(x), Empty, Digit(a))
   def ++[B >: A](xs: FingerTree[B], ts: List[B]) =
     xs match {
-      case Empty => (ts.foldLeft[FingerTree[B]](this))(_ + _)
+      case Empty        => (ts.foldLeft[FingerTree[B]](this))(_ + _)
       case s: Single[_] => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
-      case _ => x :: (ts foldRight (xs))(_ :: _)
+      case _            => x :: (ts foldRight (xs)) (_ :: _)
     }
   def viewL = Some((x, Empty))
   def viewR = Some((Empty, x))
 }
 
-class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit[A])
-  extends FingerTree[A] {
+class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit[A]) extends FingerTree[A] {
   def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = {
     def f1(d: Digit[B], b: C) = (d foldRight (b))(f(_, _))
     def f2(t: FingerTree[Node[B]], b: C): C =
@@ -92,25 +91,25 @@ class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit
   def ::[B >: A](a: B): FingerTree[B] = {
     pr match {
       case Four(b, c, d, e) => Deep(Digit(a, b), (Node(c, d, e) :: m.t), sf)
-      case Three(b, c, d) => Deep(Digit(a, b, c, d), m, sf)
-      case Two(b, c) => Deep(Digit(a, b, c), m, sf)
-      case One(b) => Deep(Digit(a, b), m, sf)
+      case Three(b, c, d)   => Deep(Digit(a, b, c, d), m, sf)
+      case Two(b, c)        => Deep(Digit(a, b, c), m, sf)
+      case One(b)           => Deep(Digit(a, b), m, sf)
     }
   }
 
   def +[B >: A](a: B): FingerTree[B] = {
     sf match {
       case Four(e, d, c, b) => Deep(pr, m.t + Node(e, d, c), Digit(b, a))
-      case Three(d, c, b) => Deep(pr, m, Digit(d, c, b, a))
-      case Two(c, b) => Deep(pr, m, Digit(c, b, a))
-      case One(b) => Deep(pr, m, Digit(b, a))
+      case Three(d, c, b)   => Deep(pr, m, Digit(d, c, b, a))
+      case Two(c, b)        => Deep(pr, m, Digit(c, b, a))
+      case One(b)           => Deep(pr, m, Digit(b, a))
     }
   }
 
   def ++[B >: A](xs: FingerTree[B], ts: List[B]): FingerTree[B] =
     xs match {
-      case Empty => (ts.foldLeft[FingerTree[B]](this))(_ + _)
-      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
+      case Empty              => (ts.foldLeft[FingerTree[B]](this))(_ + _)
+      case s: Single[_]       => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
       case Deep(pr2, m2, sf2) => Deep(pr, m.t ++ (m2, Node.nodes(sf.toList ++ ts ++ pr2.toList)), sf2)
     }
 
@@ -120,27 +119,29 @@ class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit
   def deepL[B >: A](pr: Option[Digit[B]], m: Lazy[FingerTree[Node[B]]], sf: Digit[B]): FingerTree[B] = {
     pr match {
       case Some(d) => Deep(d, m, sf)
-      case None => m.t.viewL match {
-        case None => sf.toTree
-        case Some((a, m)) => Deep(a.toDigit, m, sf)
-      }
+      case None =>
+        m.t.viewL match {
+          case None         => sf.toTree
+          case Some((a, m)) => Deep(a.toDigit, m, sf)
+        }
     }
   }
 
   def deepR[B >: A](pr: Digit[B], m: Lazy[FingerTree[Node[B]]], sf: Option[Digit[B]]): FingerTree[B] = {
     sf match {
       case Some(d) => Deep(pr, m, d)
-      case None => m.t.viewR match {
-        case None => pr.toTree
-        case Some((m, a)) => Deep(pr, m, a.toDigit)
-      }
+      case None =>
+        m.t.viewR match {
+          case None         => pr.toTree
+          case Some((m, a)) => Deep(pr, m, a.toDigit)
+        }
     }
   }
 
   override def equals(that: Any): Boolean =
     that match {
       case Deep(tpr, tm, tsf) => pr == tpr && m.t == tm && sf == tsf
-      case _ => false
+      case _                  => false
     }
 }
 
