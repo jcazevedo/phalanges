@@ -23,10 +23,10 @@ object Node {
   def apply[A](a: A, b: A, c: A): Node[A] = Node3(a, b, c)
   def nodes[A](s: List[A]): List[Node[A]] =
     s match {
-      case a :: b :: Nil => Node(a, b) :: Nil
-      case a :: b :: c :: Nil => Node(a, b, c) :: Nil
+      case a :: b :: Nil           => Node(a, b) :: Nil
+      case a :: b :: c :: Nil      => Node(a, b, c) :: Nil
       case a :: b :: c :: d :: Nil => Node(a, b) :: Node(c, d) :: Nil
-      case a :: b :: c :: xs => Node(a, b, c) :: nodes(xs)
-      case _ => Nil
+      case a :: b :: c :: xs       => Node(a, b, c) :: nodes(xs)
+      case _                       => Nil
     }
 }

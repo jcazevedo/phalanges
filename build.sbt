@@ -11,16 +11,17 @@ scalaVersion := "2.13.10"
 
 crossScalaVersions := Seq("2.12.17", "2.13.10")
 
-libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2-core" % "4.8.0" % "test")
+libraryDependencies ++= Seq("org.specs2" %% "specs2-core" % "4.8.0" % "test")
 
 scalacOptions ++= {
   val allVersionFlags = List(
-    "-encoding", "UTF-8", // yes, this is 2 args
+    "-encoding",
+    "UTF-8", // yes, this is 2 args
     "-feature",
     "-unchecked",
     "-Ywarn-dead-code",
-    "-Ywarn-numeric-widen")
+    "-Ywarn-numeric-widen"
+  )
 
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) =>
@@ -29,11 +30,11 @@ scalacOptions ++= {
         "-Xlint:_,-unused",
         "-Xfatal-warnings",
         "-Yno-adapted-args",
-        "-Ywarn-unused:_,-implicits")
+        "-Ywarn-unused:_,-implicits"
+      )
 
     case Some((2, 13)) =>
-      allVersionFlags ++ List(
-        "-Ywarn-unused:_,-implicits")
+      allVersionFlags ++ List("-Ywarn-unused:_,-implicits")
 
     case _ =>
       allVersionFlags
@@ -45,7 +46,7 @@ Test / console / scalacOptions := (Compile / console / scalacOptions).value
 
 publishMavenStyle := true
 
-publishTo := {
+publishTo               := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
@@ -55,13 +56,14 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-licenses := Seq("MIT License" ->
-  url("http://www.opensource.org/licenses/mit-license.php"))
+licenses := Seq(
+  "MIT License" ->
+    url("http://www.opensource.org/licenses/mit-license.php")
+)
 
 homepage := Some(url("https://github.com/jcazevedo/phalange"))
 
-pomExtra := (
-  <scm>
+pomExtra := (<scm>
     <url>git@github.com:jcazevedo/phalange.git</url>
     <connection>scm:git:git@github.com:jcazevedo/phalange.git</connection>
   </scm>
