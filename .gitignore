@@ -1,8 +1,19 @@
-*~
-.DS_Store
+# Build related files.
+target/
+
+# ENSIME related files.
 .ensime
 .ensime_cache
 .ensime_lucene
-.idea
-.lib
-target/
+
+# General files.
+*~
+.DS_Store
+
+# Metals related files.
+.bloop
+.metals
+metals.sbt
+
+# sbt related files.
+.bsp
