@@ -45,4 +45,10 @@ jobs:
         run: sbt ++${{ matrix.scala-version }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Run tests
-        run: sbt ++${{ matrix.scala-version }} test
+        run: sbt coverage ++${{ matrix.scala-version }} test
+
+      - name: Upload coverage data to Coveralls
+        run: sbt ++${{ matrix.scala-version }} coverageAggregate coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_FLAG_NAME: Scala ${{ matrix.scala }}
