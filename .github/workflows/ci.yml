@@ -41,5 +41,8 @@ jobs:
       - name: Compile
         run: sbt ++${{ matrix.scala-version }} Test/compile
 
+      - name: Check formatting
+        run: sbt ++${{ matrix.scala-version }} scalafmtCheckAll scalafmtSbtCheck
+
       - name: Run tests
         run: sbt ++${{ matrix.scala-version }} test
