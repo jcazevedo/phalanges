@@ -46,13 +46,13 @@ Test / console / scalacOptions := (Compile / console / scalacOptions).value
 
 publishMavenStyle := true
 
-publishTo               := {
+publishTo              := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-publishArtifact in Test := false
+Test / publishArtifact := false
 
 pomIncludeRepository := { _ => false }
 
