@@ -1,6 +1,3 @@
-import sbt.CrossVersion
-import sbt.Keys.scalaVersion
-
 name := "phalange"
 
 organization := "net.jcazevedo"
