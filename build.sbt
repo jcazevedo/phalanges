@@ -54,6 +54,13 @@ publishTo              := {
 
 Test / publishArtifact := false
 
+// Enable SemanticDB for Scalafix.
+semanticdbEnabled := true
+semanticdbVersion := scalafixSemanticdb.revision
+
+// Enable the OrganizeImports Scalafix rule.
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
+
 pomIncludeRepository := { _ => false }
 
 licenses := Seq(
