@@ -45,7 +45,7 @@ jobs:
         run: sbt ++${{ matrix.scala-version }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check linter
-        run: sbt ++${{ matrix.scala-version }} scalafixAll --check
+        run: sbt ++${{ matrix.scala-version }} "scalafixAll --check"
 
       - name: Run tests
         run: sbt coverage ++${{ matrix.scala-version }} test
