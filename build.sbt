@@ -78,6 +78,6 @@ pomExtra := (<scm>
     <developer>
       <id>jcazevedo</id>
       <name>Joao Azevedo</name>
-      <url>http://jcazevedo.net</url>
+      <url>https://jcazevedo.net</url>
     </developer>
   </developers>)
