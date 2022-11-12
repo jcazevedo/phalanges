@@ -1,80 +1,77 @@
-name := "phalange"
+ThisBuild / scalaVersion         := "2.13.10"
+ThisBuild / version              := "0.1.0-SNAPSHOT"
+ThisBuild / crossScalaVersions   := Seq("2.12.17", "2.13.10")
+ThisBuild / organization         := "net.jcazevedo"
+ThisBuild / organizationName     := "jcazevedo"
+ThisBuild / organizationHomepage := Some(url("https://jcazevedo.net/"))
 
-organization := "net.jcazevedo"
-
-version := "0.1-SNAPSHOT"
-
-scalaVersion := "2.13.10"
-
-crossScalaVersions := Seq("2.12.17", "2.13.10")
-
-libraryDependencies ++= Seq("org.specs2" %% "specs2-core" % "4.8.0" % "test")
-
-scalacOptions ++= {
-  val allVersionFlags = List(
-    "-encoding",
-    "UTF-8", // yes, this is 2 args
-    "-feature",
-    "-unchecked",
-    "-Ywarn-dead-code",
-    "-Ywarn-numeric-widen"
+ThisBuild / scmInfo     := Some(
+  ScmInfo(
+    url("https://github.com/jcazevedo/phalange"),
+    "scm:git@github.com:jcazevedo/phalange.git"
   )
+)
+ThisBuild / developers  := List(
+  Developer(
+    id = "jcazevedo",
+    name = "Joao Azevedo",
+    email = "joao.c.azevedo@gmail.com",
+    url = url("https://jcazevedo.net")
+  )
+)
 
-  CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 12)) =>
-      allVersionFlags ++ List(
-        "-deprecation",
-        "-Xlint:_,-unused",
-        "-Xfatal-warnings",
-        "-Yno-adapted-args",
-        "-Ywarn-unused:_,-implicits"
-      )
+ThisBuild / description := "An implementation of finger trees as proposed by Hinze and Paterson."
+ThisBuild / licenses    := Seq(
+  "MIT License" ->
+    url("http://www.opensource.org/licenses/mit-license.php")
+)
+ThisBuild / homepage    := Some(url("https://github.com/jcazevedo/phalange"))
 
-    case Some((2, 13)) =>
-      allVersionFlags ++ List("-Ywarn-unused:_,-implicits")
-
-    case _ =>
-      allVersionFlags
-  }
-}
-
-Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits")
-Test / console / scalacOptions := (Compile / console / scalacOptions).value
-
-publishMavenStyle := true
-
-publishTo              := {
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishTo            := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
-
-Test / publishArtifact := false
+ThisBuild / publishMavenStyle    := true
 
 // Enable SemanticDB for Scalafix.
-semanticdbEnabled := true
-semanticdbVersion := scalafixSemanticdb.revision
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 // Enable the OrganizeImports Scalafix rule.
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
 
-pomIncludeRepository := { _ => false }
+lazy val phalange = (project in file(".")).settings(
+  name                           := "phalange",
+  libraryDependencies ++= Seq("org.specs2" %% "specs2-core" % "4.8.0" % "test"),
+  scalacOptions ++= {
+    val allVersionFlags = List(
+      "-encoding",
+      "UTF-8",
+      "-feature",
+      "-unchecked",
+      "-Ywarn-dead-code",
+      "-Ywarn-numeric-widen"
+    )
 
-licenses := Seq(
-  "MIT License" ->
-    url("http://www.opensource.org/licenses/mit-license.php")
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 12)) =>
+        allVersionFlags ++ List(
+          "-deprecation",
+          "-Xlint:_,-unused",
+          "-Xfatal-warnings",
+          "-Yno-adapted-args",
+          "-Ywarn-unused:_,-implicits"
+        )
+
+      case Some((2, 13)) =>
+        allVersionFlags ++ List("-Ywarn-unused:_,-implicits")
+
+      case _ =>
+        allVersionFlags
+    }
+  },
+  Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits"),
+  Test / console / scalacOptions := (Compile / console / scalacOptions).value
 )
-
-homepage := Some(url("https://github.com/jcazevedo/phalange"))
-
-pomExtra := (<scm>
-    <url>git@github.com:jcazevedo/phalange.git</url>
-    <connection>scm:git:git@github.com:jcazevedo/phalange.git</connection>
-  </scm>
-  <developers>
-    <developer>
-      <id>jcazevedo</id>
-      <name>Joao Azevedo</name>
-      <url>https://jcazevedo.net</url>
-    </developer>
-  </developers>)
