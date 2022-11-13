@@ -141,6 +141,16 @@ class FingerTreeSpec extends Specification with ScalaCheck {
       ft.tailROption ==== None
     }
 
+    "support a lazyListL operation" in forAll { ints: List[Int] =>
+      val ft = FingerTree.apply(ints: _*)
+      ft.lazyListL.toList ==== ints
+    }
+
+    "support a lazyListR operation" in forAll { ints: List[Int] =>
+      val ft = FingerTree.apply(ints: _*)
+      ft.lazyListR.toList ==== ints.reverse
+    }
+
     "support concatentation" in forAll { (xs: List[Int], ys: List[Int]) =>
       val ft1 = FingerTree.apply(xs: _*)
       val ft2 = FingerTree.apply(ys: _*)
