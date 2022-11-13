@@ -21,14 +21,14 @@ class FingerTreeSpec extends Specification with ScalaCheck {
       ft.foldLeft(0L)(_ + _.toLong) ==== ints.map(_.toLong).sum
     }
 
-    "support a prepend operation" in {
-      val ft = 1 +: 2 +: 3 +: 4 +: 5 +: FingerTree.empty[Int]
-      ft.toList ==== List(1, 2, 3, 4, 5)
+    "support a prepend operation" in forAll { (toPrepend: List[Int], existing: List[Int]) =>
+      val ft = toPrepend.foldRight(FingerTree.apply(existing: _*))(_ +: _)
+      ft.toList ==== toPrepend ++ existing
     }
 
-    "support an append operation" in {
-      val ft = FingerTree.empty[Int] :+ 1 :+ 2 :+ 3 :+ 4 :+ 5
-      ft.toList ==== List(1, 2, 3, 4, 5)
+    "support an append operation" in forAll { (existing: List[Int], toAppend: List[Int]) =>
+      val ft = toAppend.foldLeft(FingerTree.apply(existing: _*))(_ :+ _)
+      ft.toList ==== existing ++ toAppend
     }
 
     "support a headL operation in non-empty trees" in forAll { ints: List[Int] =>
