@@ -130,7 +130,11 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     "support concatentation" in forAll { (xs: List[Int], ys: List[Int]) =>
       val ft1 = FingerTree.apply(xs: _*)
       val ft2 = FingerTree.apply(ys: _*)
-      (ft1 ++ ft2).toList ==== (xs ++ ys)
+      val resultFt = ft1 ++ ft2
+      val resultList = xs ++ ys
+
+      resultFt.foldRight(List.empty[Int])(_ :: _) ==== resultList
+      resultFt.foldLeft(0L)(_ + _.toLong) ==== resultList.map(_.toLong).sum
     }
   }
 }
