@@ -8,10 +8,6 @@ class FingerTreeSpec extends Specification with ScalaCheck {
   implicit val unitMeasured: Measured[Any, Unit] =
     new Measured[Any, Unit] {
       def apply(a: Any): Unit = ()
-    }
-
-  implicit val unitMonoid: Monoid[Unit] =
-    new Monoid[Unit] {
       def empty: Unit = ()
       def append(a: Unit, b: Unit) = ()
     }
