@@ -1,246 +1,136 @@
 package net.jcazevedo.phalange
 
-import org.specs2.mutable._
+import org.scalacheck.Prop.forAll
+import org.specs2.ScalaCheck
+import org.specs2.mutable.Specification
 
-class FingerTreeSpec extends Specification {
-  "A Finger Tree" should {
-    "support fold right operation" in {
-      val f =
-        Deep(
-          Digit('t', 'h'),
-          Deep(Digit(Node('i', 's'), Node('i', 's')), Empty, Digit(Node('n', 'o', 't'), Node('a', 't'))),
-          Digit('r', 'e', 'e')
-        )
+class FingerTreeSpec extends Specification with ScalaCheck {
+  "A FingerTree" should {
+    "support an apply method" in forAll { ints: List[Int] =>
+      val ft = FingerTree.apply(ints: _*)
+      ft.toList ==== ints
+    }
 
-      val l = f.foldRight(List[Char]()) { (c, l) =>
-        c :: l
+    "support a foldRight operation" in forAll { ints: List[Int] =>
+      val ft = FingerTree.apply(ints: _*)
+      ft.foldRight(List.empty[Int])(_ :: _) ==== ints
+    }
+
+    "support a foldLeft operation" in forAll { ints: List[Int] =>
+      val ft = FingerTree.apply(ints: _*)
+      ft.foldLeft(0L)(_ + _.toLong) ==== ints.map(_.toLong).sum
+    }
+
+    "support a prepend operation" in {
+      val ft = 1 +: 2 +: 3 +: 4 +: 5 +: FingerTree.empty[Int]
+      ft.toList ==== List(1, 2, 3, 4, 5)
+    }
+
+    "support an append operation" in {
+      val ft = FingerTree.empty[Int] :+ 1 :+ 2 :+ 3 :+ 4 :+ 5
+      ft.toList ==== List(1, 2, 3, 4, 5)
+    }
+
+    "support a headL operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.headL ==== ints.head
       }
-
-      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
     }
 
-    "support fold left operation" in {
-      val f =
-        Deep(
-          Digit('t', 'h'),
-          Deep(Digit(Node('i', 's'), Node('i', 's')), Empty, Digit(Node('n', 'o', 't'), Node('a', 't'))),
-          Digit('r', 'e', 'e')
-        )
+    "support a headL operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.headL must throwA[NoSuchElementException]
+    }
 
-      val l = f.foldLeft(List[Char]()) { (l, c) =>
-        l ++ List(c)
+    "support a headLOption operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.headLOption ==== Some(ints.head)
       }
-
-      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
     }
 
-    "support cons operation" in {
-      val f = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
-
-      f.toString mustEqual "thisisnotatree"
+    "support a headLOption operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.headLOption ==== None
     }
 
-    "support snoc operation" in {
-      val f = Empty + 't' + 'h' + 'i' + 's' + 'i' + 's' + 'n' + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
-
-      f.toString mustEqual "thisisnotatree"
-    }
-
-    "support cons and snoc operations intertwined" in {
-      val f = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty + 'o' + 't' + 'a' + 't' + 'r' + 'e' + 'e'
-
-      f.toString mustEqual "thisisnotatree"
-    }
-
-    "support toList method" in {
-      val f = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
-      val l = f.toList
-
-      l mustEqual List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
-    }
-
-    "support toTree method" in {
-      import FingerTree.Implicits._
-
-      val l = List('t', 'h', 'i', 's', 'i', 's', 'n', 'o', 't', 'a', 't', 'r', 'e', 'e')
-      val f: FingerTree[Char] = l
-      val fl = f.toList
-
-      fl mustEqual l
-    }
-
-    "support toTree method in digits" in {
-      val d1 = Digit('t')
-      val d2 = Digit('t', 'h')
-      val d3 = Digit('t', 'h', 'i')
-      val d4 = Digit('t', 'h', 'i', 's')
-
-      d1.toTree.toString mustEqual "t"
-      d2.toTree.toString mustEqual "th"
-      d3.toTree.toString mustEqual "thi"
-      d4.toTree.toString mustEqual "this"
-    }
-
-    "support toDigit method in nodes" in {
-      val n2 = Node('a', 'b')
-      val n3 = Node('a', 'b', 'c')
-
-      n2.toDigit mustEqual Two('a', 'b')
-      n3.toDigit mustEqual Three('a', 'b', 'c')
-    }
-
-    "support viewL method" in {
-      val f1 = Empty
-      val f2 = 't' :: Empty
-      val f3 = 't' :: 'h' :: Empty
-      val f4 = 't' :: 'h' :: 'i' :: Empty
-      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty
-
-      f1.viewL mustEqual None
-      f2.viewL mustEqual Some(('t', Empty))
-      f3.viewL mustEqual Some(('t', Single('h')))
-      f4.viewL mustEqual Some(('t', Deep(One('h'), Empty, One('i'))))
-      f5.viewL mustEqual Some(('t', Deep(Two('h', 'i'), Empty, One('s'))))
-    }
-
-    "support viewR method" in {
-      val f1 = Empty
-      val f2 = 't' :: Empty
-      val f3 = 't' :: 'h' :: Empty
-      val f4 = 't' :: 'h' :: 'i' :: Empty
-      val f5 = 't' :: 'h' :: 'i' :: 's' :: Empty
-
-      f1.viewR mustEqual None
-      f2.viewR mustEqual Some((Empty, 't'))
-      f3.viewR mustEqual Some((Single('t'), 'h'))
-      f4.viewR mustEqual Some((Deep(One('t'), Empty, One('h')), 'i'))
-      f5.viewR mustEqual Some((Deep(Two('t', 'h'), Empty, One('i')), 's'))
-    }
-
-    "support isEmpty method" in {
-      val f1 = Empty
-      val f2 = 't' :: Empty
-
-      f1.isEmpty must beTrue
-      f2.isEmpty must beFalse
-    }
-
-    "support headL method" in {
-      val f1 = 't' :: Empty
-      val f2 = 't' :: 'h' :: Empty
-      val f3 = 't' :: 'h' :: 'i' :: Empty
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
-
-      f1.headL mustEqual 't'
-      f2.headL mustEqual 't'
-      f3.headL mustEqual 't'
-      f4.headL mustEqual 't'
-    }
-
-    "support headR method" in {
-      val f1 = 't' :: Empty
-      val f2 = 't' :: 'h' :: Empty
-      val f3 = 't' :: 'h' :: 'i' :: Empty
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
-
-      f1.headR mustEqual 't'
-      f2.headR mustEqual 'h'
-      f3.headR mustEqual 'i'
-      f4.headR mustEqual 's'
-    }
-
-    "support tailL method" in {
-      val f1 = 't' :: Empty
-      val f2 = 't' :: 'h' :: Empty
-      val f3 = 't' :: 'h' :: 'i' :: Empty
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
-
-      f1.tailL mustEqual Empty
-      f2.tailL mustEqual Single('h')
-      f3.tailL mustEqual Deep(One('h'), Empty, One('i'))
-      f4.tailL mustEqual Deep(Two('h', 'i'), Empty, One('s'))
-    }
-
-    "support tailR method" in {
-      val f1 = 't' :: Empty
-      val f2 = 't' :: 'h' :: Empty
-      val f3 = 't' :: 'h' :: 'i' :: Empty
-      val f4 = 't' :: 'h' :: 'i' :: 's' :: Empty
-
-      f1.tailR mustEqual Empty
-      f2.tailR mustEqual Single('t')
-      f3.tailR mustEqual Deep(One('t'), Empty, One('h'))
-      f4.tailR mustEqual Deep(Two('t', 'h'), Empty, One('i'))
-    }
-
-    "support concatenation to empty finger tree" in {
-      val t1 = Empty
-      val t2 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "thisisnotatree"
-    }
-
-    "support concatenation of empty finger tree" in {
-      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
-      val t2 = Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "thisisnotatree"
-    }
-
-    "support concatenation to single element finger tree" in {
-      val t1 = 't' :: Empty
-      val t2 = 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "thisisnotatree"
-    }
-
-    "support concatention to empty finger tree of single element finger tree" in {
-      val t1 = Empty
-      val t2 = 't' :: Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "t"
-    }
-
-    "support concatenation to single element finger tree of empty finger tree" in {
-      val t1 = 't' :: Empty
-      val t2 = Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "t"
-    }
-
-    "support concatenation of single element finger tree" in {
-      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: Empty
-      val t2 = 'e' :: Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "thisisnotatree"
-    }
-
-    "support concatenation of deep finger trees" in {
-      val t1 = 't' :: 'h' :: 'i' :: 's' :: 'i' :: 's' :: 'n' :: Empty
-      val t2 = 'o' :: 't' :: 'a' :: 't' :: 'r' :: 'e' :: 'e' :: Empty
-
-      val t = t1 ++ t2
-      t.toString mustEqual "thisisnotatree"
-    }
-
-    "support concatenation on various splits of the string" in {
-      def buildFingerTree(s: String) =
-        s.foldRight[FingerTree[Char]](Empty)(_ :: _)
-
-      val s = "thisisnotatree"
-      (1 to s.length - 1).forall { i =>
-        val s1 = s.substring(0, i)
-        val s2 = s.substring(i)
-
-        val t = buildFingerTree(s1) ++ buildFingerTree(s2)
-        t.toString mustEqual "thisisnotatree"
+    "support a tailL operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.tailL.toList ==== ints.tail
       }
+    }
+
+    "support a tailL operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.tailL must throwA[NoSuchElementException]
+    }
+
+    "support a tailLOption operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.tailLOption must beSome.which(_.toList ==== ints.tail)
+      }
+    }
+
+    "support a tailLOption operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.tailLOption ==== None
+    }
+
+    "support a headR operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.headR ==== ints.last
+      }
+    }
+
+    "support a headR operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.headR must throwA[NoSuchElementException]
+    }
+
+    "support a headROption operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.headROption ==== Some(ints.last)
+      }
+    }
+
+    "support a headROption operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.headROption ==== None
+    }
+
+    "support a tailR operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.tailR.toList ==== ints.init
+      }
+    }
+
+    "support a tailR operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.tailR must throwA[NoSuchElementException]
+    }
+
+    "support a tailROption operation in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.tailROption must beSome.which(_.toList ==== ints.init)
+      }
+    }
+
+    "support a tailROption operation in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.tailROption ==== None
+    }
+
+    "support concatentation" in forAll { (xs: List[Int], ys: List[Int]) =>
+      val ft1 = FingerTree.apply(xs: _*)
+      val ft2 = FingerTree.apply(ys: _*)
+      (ft1 ++ ft2).toList ==== (xs ++ ys)
     }
   }
 }
