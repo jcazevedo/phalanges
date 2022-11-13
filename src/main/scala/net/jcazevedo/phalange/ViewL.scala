@@ -1,8 +1,8 @@
 package net.jcazevedo.phalange
 
-private[phalange] sealed trait ViewL[+A]
+private[phalange] sealed trait ViewL[V, +A]
 
 private[phalange] object ViewL {
-  private[phalange] case object Empty extends ViewL[Nothing]
-  private[phalange] case class Cons[+A](head: A, tail: Lazy[FingerTree[A]]) extends ViewL[A]
+  private[phalange] case class Empty[V]() extends ViewL[V, Nothing]
+  private[phalange] case class Cons[V, +A](head: A, tail: Lazy[FingerTree[V, A]]) extends ViewL[V, A]
 }
