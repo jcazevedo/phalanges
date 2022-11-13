@@ -1,157 +1,273 @@
 package net.jcazevedo.phalange
 
-import scala.language.implicitConversions
+import scala.collection.compat.immutable.LazyList
 
-trait FingerTree[+A] {
-  def foldRight[B >: A, C](z: C)(f: (B, C) => C): C
-  def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C
-  def ::[B >: A](a: B): FingerTree[B]
-  def +[B >: A](a: B): FingerTree[B]
-  def ++[B >: A](xs: FingerTree[B], ts: List[B] = List()): FingerTree[B]
-  def viewL: Option[(A, FingerTree[A])]
-  def viewR: Option[(FingerTree[A], A)]
-  def toList = foldRight(List[A]())(_ :: _)
-  override def toString = toList mkString ""
+sealed trait FingerTree[+A] {
+  def foldRight[B](z: B)(op: (A, B) => B): B =
+    this match {
+      case FingerTree.Empty =>
+        z
 
-  def isEmpty = viewL match {
-    case None         => true
-    case Some((_, _)) => false
-  }
+      case FingerTree.Single(x) =>
+        op(x, z)
 
-  def headL = (viewL: @unchecked) match {
-    case Some((h, _)) => h
-  }
+      case FingerTree.Deep(pr, m, sf) =>
+        pr.foldRight(m.value.foldRight(sf.foldRight(z)(op))((a, b) => a.foldRight(b)(op)))(op)
+    }
 
-  def headR = (viewR: @unchecked) match {
-    case Some((_, h)) => h
-  }
+  def foldLeft[B](z: B)(op: (B, A) => B): B =
+    this match {
+      case FingerTree.Empty =>
+        z
 
-  def tailL = (viewL: @unchecked) match {
-    case Some((_, t)) => t
-  }
+      case FingerTree.Single(x) =>
+        op(z, x)
 
-  def tailR = (viewR: @unchecked) match {
-    case Some((t, _)) => t
-  }
+      case FingerTree.Deep(pr, m, sf) =>
+        sf.foldLeft(m.value.foldLeft(pr.foldLeft(z)(op))((b, a) => a.foldLeft(b)(op)))(op)
+    }
+
+  def +:[B >: A](a: B): FingerTree[B] =
+    this match {
+      case FingerTree.Empty =>
+        FingerTree.Single(a)
+
+      case FingerTree.Single(b) =>
+        FingerTree.Deep(Digit.One(a), new Lazy(FingerTree.Empty), Digit.One(b))
+
+      case FingerTree.Deep(Digit.One(b), m, sf) =>
+        FingerTree.Deep(Digit.Two(a, b), m, sf)
+
+      case FingerTree.Deep(Digit.Two(b, c), m, sf) =>
+        FingerTree.Deep(Digit.Three(a, b, c), m, sf)
+
+      case FingerTree.Deep(Digit.Three(b, c, d), m, sf) =>
+        FingerTree.Deep(Digit.Four(a, b, c, d), m, sf)
+
+      case FingerTree.Deep(Digit.Four(b, c, d, e), m, sf) =>
+        FingerTree.Deep(Digit.Two(a, b), new Lazy(Node.Node3(c, d, e) +: m.value), sf)
+    }
+
+  def :+[B >: A](a: B): FingerTree[B] =
+    this match {
+      case FingerTree.Empty =>
+        FingerTree.Single(a)
+
+      case FingerTree.Single(b) =>
+        FingerTree.Deep(Digit.One(b), new Lazy(FingerTree.Empty), Digit.One(a))
+
+      case FingerTree.Deep(pr, m, Digit.One(b)) =>
+        FingerTree.Deep(pr, m, Digit.Two(b, a))
+
+      case FingerTree.Deep(pr, m, Digit.Two(c, b)) =>
+        FingerTree.Deep(pr, m, Digit.Three(c, b, a))
+
+      case FingerTree.Deep(pr, m, Digit.Three(d, c, b)) =>
+        FingerTree.Deep(pr, m, Digit.Four(d, c, b, a))
+
+      case FingerTree.Deep(pr, m, Digit.Four(e, d, c, b)) =>
+        FingerTree.Deep(pr, new Lazy(m.value :+ Node.Node3(e, d, c)), Digit.Two(b, a))
+    }
+
+  def ++[B >: A](that: FingerTree[B]): FingerTree[B] =
+    FingerTree.app3(this, List.empty, that)
+
+  private def viewL: ViewL[A] =
+    this match {
+      case FingerTree.Empty =>
+        ViewL.Empty
+
+      case FingerTree.Single(a) =>
+        ViewL.Cons(a, new Lazy(FingerTree.empty))
+
+      case FingerTree.Deep(Digit.One(a), m, sf) =>
+        ViewL.Cons(
+          a,
+          new Lazy(m.value.viewL match {
+            case ViewL.Empty =>
+              FingerTree.apply(sf.toSeq: _*)
+
+            case ViewL.Cons(Node.Node2(a, b), rest) =>
+              FingerTree.Deep(Digit.Two(a, b), rest, sf)
+
+            case ViewL.Cons(Node.Node3(a, b, c), rest) =>
+              FingerTree.Deep(Digit.Three(a, b, c), rest, sf)
+          })
+        )
+
+      case FingerTree.Deep(Digit.Two(a, b), m, sf) =>
+        ViewL.Cons(a, new Lazy(FingerTree.Deep(Digit.One(b), m, sf)))
+
+      case FingerTree.Deep(Digit.Three(a, b, c), m, sf) =>
+        ViewL.Cons(a, new Lazy(FingerTree.Deep(Digit.Two(b, c), m, sf)))
+
+      case FingerTree.Deep(Digit.Four(a, b, c, d), m, sf) =>
+        ViewL.Cons(a, new Lazy(FingerTree.Deep(Digit.Three(b, c, d), m, sf)))
+    }
+
+  def lazyListL: LazyList[A] =
+    LazyList.unfold(this)(_.viewL match {
+      case ViewL.Cons(head, tail) => Some((head, tail.value))
+      case ViewL.Empty            => None
+    })
+
+  def toList: List[A] =
+    lazyListL.toList
+
+  def isEmpty: Boolean =
+    viewL match {
+      case ViewL.Cons(_, _) => false
+      case ViewL.Empty      => true
+    }
+
+  def nonEmpty: Boolean =
+    !isEmpty
+
+  def headL: A =
+    viewL match {
+      case ViewL.Cons(a, _) => a
+      case ViewL.Empty      => throw new NoSuchElementException("head of empty finger tree")
+    }
+
+  def tailL: FingerTree[A] =
+    viewL match {
+      case ViewL.Cons(_, rest) => rest.value
+      case ViewL.Empty         => throw new NoSuchElementException("tail of empty finger tree")
+    }
+
+  def headLOption: Option[A] =
+    viewL match {
+      case ViewL.Cons(a, _) => Some(a)
+      case ViewL.Empty      => None
+    }
+
+  def tailLOption: Option[FingerTree[A]] =
+    viewL match {
+      case ViewL.Cons(_, rest) => Some(rest.value)
+      case ViewL.Empty         => None
+    }
+
+  private def viewR: ViewR[A] =
+    this match {
+      case FingerTree.Empty =>
+        ViewR.Empty
+
+      case FingerTree.Single(a) =>
+        ViewR.Cons(new Lazy(FingerTree.empty), a)
+
+      case FingerTree.Deep(pr, m, Digit.One(a)) =>
+        ViewR.Cons(
+          new Lazy(m.value.viewR match {
+            case ViewR.Empty =>
+              FingerTree.apply(pr.toSeq: _*)
+
+            case ViewR.Cons(rest, Node.Node2(b, a)) =>
+              FingerTree.Deep(pr, rest, Digit.Two(b, a))
+
+            case ViewR.Cons(rest, Node.Node3(c, b, a)) =>
+              FingerTree.Deep(pr, rest, Digit.Three(c, b, a))
+          }),
+          a
+        )
+
+      case FingerTree.Deep(pr, m, Digit.Two(b, a)) =>
+        ViewR.Cons(new Lazy(FingerTree.Deep(pr, m, Digit.One(b))), a)
+
+      case FingerTree.Deep(pr, m, Digit.Three(c, b, a)) =>
+        ViewR.Cons(new Lazy(FingerTree.Deep(pr, m, Digit.Two(c, b))), a)
+
+      case FingerTree.Deep(pr, m, Digit.Four(d, c, b, a)) =>
+        ViewR.Cons(new Lazy(FingerTree.Deep(pr, m, Digit.Three(d, c, b))), a)
+    }
+
+  def lazyListR: LazyList[A] =
+    LazyList.unfold(this)(_.viewR match {
+      case ViewR.Cons(tail, head) => Some((head, tail.value))
+      case ViewR.Empty            => None
+    })
+
+  def headR: A =
+    viewR match {
+      case ViewR.Cons(_, a) => a
+      case ViewR.Empty      => throw new NoSuchElementException("head of empty finger tree")
+    }
+
+  def tailR: FingerTree[A] =
+    viewR match {
+      case ViewR.Cons(rest, _) => rest.value
+      case ViewR.Empty         => throw new NoSuchElementException("tail of empty finger tree")
+    }
+
+  def headROption: Option[A] =
+    viewR match {
+      case ViewR.Cons(_, a) => Some(a)
+      case ViewR.Empty      => None
+    }
+
+  def tailROption: Option[FingerTree[A]] =
+    viewR match {
+      case ViewR.Cons(rest, _) => Some(rest.value)
+      case ViewR.Empty         => None
+    }
 }
 
 object FingerTree {
-  object Implicits {
-    implicit def toTree[A](s: Traversable[A]): FingerTree[A] = {
-      s.foldRight[FingerTree[A]](Empty) { (h, t) =>
-        h :: t
-      }
-    }
-  }
-}
+  private[phalange] case object Empty extends FingerTree[Nothing]
+  private[phalange] case class Single[+A](x: A) extends FingerTree[A]
+  private[phalange] case class Deep[A](pr: Digit[A], m: Lazy[FingerTree[Node[A]]], sf: Digit[A]) extends FingerTree[A]
 
-case object Empty extends FingerTree[Nothing] {
-  def foldRight[B >: Nothing, C](z: C)(f: (B, C) => C): C = z
-  def foldLeft[B >: Nothing, C](z: C)(f: (C, B) => C): C = z
-  def ::[A](a: A): FingerTree[A] = Single(a)
-  def +[A](a: A): FingerTree[A] = Single(a)
-  def ++[A](xs: FingerTree[A], ts: List[A]): FingerTree[A] =
-    (ts foldRight (xs))(_ :: _)
-  def viewL = None
-  def viewR = None
-}
+  private[phalange] def nodes[A](a: A, b: A, rest: A*): List[Node[A]] =
+    if (rest.isEmpty)
+      List(Node.Node2(a, b))
+    else if (rest.length == 1)
+      List(Node.Node3(a, b, rest.head))
+    else if (rest.length == 2)
+      List(Node.Node2(a, b), Node.Node2(rest.head, rest.tail.head))
+    else
+      Node.Node3(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
 
-case class Single[+A](x: A) extends FingerTree[A] {
-  def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = f(x, z)
-  def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C = f(z, x)
-  def ::[B >: A](a: B): FingerTree[B] = Deep(Digit(a), Empty, Digit(x))
-  def +[B >: A](a: B): FingerTree[B] = Deep(Digit(x), Empty, Digit(a))
-  def ++[B >: A](xs: FingerTree[B], ts: List[B]) =
-    xs match {
-      case Empty        => (ts.foldLeft[FingerTree[B]](this))(_ + _)
-      case s: Single[_] => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
-      case _            => x :: (ts foldRight (xs)) (_ :: _)
-    }
-  def viewL = Some((x, Empty))
-  def viewR = Some((Empty, x))
-}
+  private[phalange] def app3[A](a: FingerTree[A], b: List[A], c: FingerTree[A]): FingerTree[A] =
+    (a, b, c) match {
+      case (FingerTree.Empty, ts, xs) =>
+        ts.foldRight(xs)(_ +: _)
 
-class Deep[+A](val pr: Digit[A], val m: Lazy[FingerTree[Node[A]]], val sf: Digit[A]) extends FingerTree[A] {
-  def foldRight[B >: A, C](z: C)(f: (B, C) => C): C = {
-    def f1(d: Digit[B], b: C) = (d foldRight (b))(f(_, _))
-    def f2(t: FingerTree[Node[B]], b: C): C =
-      (t foldRight (b))((a, b) => (a foldRight (b))(f(_, _)))
+      case (xs, ts, FingerTree.Empty) =>
+        ts.foldLeft(xs)(_ :+ _)
 
-    f1(pr, f2(m.t, f1(sf, z)))
-  }
+      case (FingerTree.Single(x), ts, xs) =>
+        x +: (ts.foldRight(xs)(_ +: _))
 
-  def foldLeft[B >: A, C](z: C)(f: (C, B) => C): C = {
-    def f1(b: C, d: Digit[B]) = (d foldLeft (b))(f(_, _))
-    def f2(b: C, t: FingerTree[Node[B]]): C =
-      (t foldLeft (b))((b, a) => (a foldLeft (b))(f(_, _)))
+      case (xs, ts, FingerTree.Single(x)) =>
+        (ts.foldLeft(xs)(_ :+ _)) :+ x
 
-    f1(f2(f1(z, pr), m.t), sf)
-  }
+      case (FingerTree.Deep(pr1, m1, Digit.One(a)), Nil, FingerTree.Deep(Digit.One(b), m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b), m2.value)), sf2)
 
-  def ::[B >: A](a: B): FingerTree[B] = {
-    pr match {
-      case Four(b, c, d, e) => Deep(Digit(a, b), (Node(c, d, e) :: m.t), sf)
-      case Three(b, c, d)   => Deep(Digit(a, b, c, d), m, sf)
-      case Two(b, c)        => Deep(Digit(a, b, c), m, sf)
-      case One(b)           => Deep(Digit(a, b), m, sf)
-    }
-  }
+      case (FingerTree.Deep(pr1, m1, Digit.One(a)), Nil, FingerTree.Deep(Digit.Two(b, c), m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c), m2.value)), sf2)
 
-  def +[B >: A](a: B): FingerTree[B] = {
-    sf match {
-      case Four(e, d, c, b) => Deep(pr, m.t + Node(e, d, c), Digit(b, a))
-      case Three(d, c, b)   => Deep(pr, m, Digit(d, c, b, a))
-      case Two(c, b)        => Deep(pr, m, Digit(c, b, a))
-      case One(b)           => Deep(pr, m, Digit(b, a))
-    }
-  }
+      case (FingerTree.Deep(pr1, m1, Digit.One(a)), Nil, FingerTree.Deep(Digit.Three(b, c, d), m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c, d), m2.value)), sf2)
 
-  def ++[B >: A](xs: FingerTree[B], ts: List[B]): FingerTree[B] =
-    xs match {
-      case Empty              => (ts.foldLeft[FingerTree[B]](this))(_ + _)
-      case s: Single[_]       => (ts.foldLeft[FingerTree[B]](this))(_ + _) + s.x
-      case Deep(pr2, m2, sf2) => Deep(pr, m.t ++ (m2, Node.nodes(sf.toList ++ ts ++ pr2.toList)), sf2)
+      case (FingerTree.Deep(pr1, m1, Digit.One(a)), Nil, FingerTree.Deep(Digit.Four(b, c, d, e), m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c, d, e), m2.value)), sf2)
+
+      case (FingerTree.Deep(pr1, m1, Digit.One(a)), ts, FingerTree.Deep(pr2, m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, ts.head, (ts.tail ++ pr2.toSeq): _*), m2.value)), sf2)
+
+      case (FingerTree.Deep(pr1, m1, Digit.Two(a, b)), ts, FingerTree.Deep(pr2, m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (ts ++ pr2.toSeq): _*), m2.value)), sf2)
+
+      case (FingerTree.Deep(pr1, m1, Digit.Three(a, b, c)), ts, FingerTree.Deep(pr2, m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (c +: (ts ++ pr2.toSeq)): _*), m2.value)), sf2)
+
+      case (FingerTree.Deep(pr1, m1, Digit.Four(a, b, c, d)), ts, FingerTree.Deep(pr2, m2, sf2)) =>
+        FingerTree.Deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (Seq(c, d) ++ ts ++ pr2.toSeq): _*), m2.value)), sf2)
     }
 
-  def viewL = Some((pr.headL, deepL(pr.tailL, m, sf)))
-  def viewR = Some((deepR(pr, m, sf.tailR), sf.headR))
+  def empty[A]: FingerTree[A] =
+    Empty
 
-  def deepL[B >: A](pr: Option[Digit[B]], m: Lazy[FingerTree[Node[B]]], sf: Digit[B]): FingerTree[B] = {
-    pr match {
-      case Some(d) => Deep(d, m, sf)
-      case None =>
-        m.t.viewL match {
-          case None         => sf.toTree
-          case Some((a, m)) => Deep(a.toDigit, m, sf)
-        }
-    }
-  }
-
-  def deepR[B >: A](pr: Digit[B], m: Lazy[FingerTree[Node[B]]], sf: Option[Digit[B]]): FingerTree[B] = {
-    sf match {
-      case Some(d) => Deep(pr, m, d)
-      case None =>
-        m.t.viewR match {
-          case None         => pr.toTree
-          case Some((m, a)) => Deep(pr, m, a.toDigit)
-        }
-    }
-  }
-
-  override def equals(that: Any): Boolean =
-    that match {
-      case Deep(tpr, tm, tsf) => pr == tpr && m.t == tm && sf == tsf
-      case _                  => false
-    }
-}
-
-object Deep {
-  def apply[A](pr: Digit[A], m: => FingerTree[Node[A]], sf: Digit[A]) =
-    new Deep(pr, new Lazy(m), sf)
-
-  def apply[A](pr: Digit[A], m: Lazy[FingerTree[Node[A]]], sf: Digit[A]) =
-    new Deep(pr, m, sf)
-
-  def unapply[A](deep: Deep[A]): Option[(Digit[A], FingerTree[Node[A]], Digit[A])] =
-    Some((deep.pr, deep.m.t, deep.sf))
+  def apply[A](as: A*): FingerTree[A] =
+    as.foldRight(FingerTree.empty[A])(_ +: _)
 }

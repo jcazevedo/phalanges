@@ -44,7 +44,12 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 
 lazy val phalange = (project in file(".")).settings(
   name                           := "phalange",
-  libraryDependencies ++= Seq("org.specs2" %% "specs2-core" % "4.17.0" % "test"),
+  libraryDependencies ++= Seq(
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1",
+    "org.scalacheck"         %% "scalacheck"              % "1.17.0" % "test",
+    "org.specs2"             %% "specs2-core"             % "4.17.0" % "test",
+    "org.specs2"             %% "specs2-scalacheck"       % "4.17.0" % "test"
+  ),
   scalacOptions ++= {
     val allVersionFlags = List(
       "-encoding",
