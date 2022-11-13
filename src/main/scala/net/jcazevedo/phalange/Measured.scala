@@ -4,7 +4,7 @@ trait Measured[-A, V] extends Monoid[V] {
   def apply(a: A): V
 }
 
-object Measured {
+object Measured extends LowPriorityImplicits {
   private[phalange] implicit def nodeMeasured[A, V](implicit monoid: Monoid[V]): Measured[Node[V, A], V] =
     new Measured[Node[V, A], V] {
       def apply(a: Node[V, A]): V =
@@ -62,4 +62,16 @@ object Measured {
 
   private[phalange] def measure[A, V](a: A)(implicit measured: Measured[A, V]): V =
     measured.apply(a)
+}
+
+trait LowPriorityImplicits {
+  /**
+   * A default implementation for when we don't want any measurements.
+   */
+  implicit val unitMeasured: Measured[Any, Unit] =
+    new Measured[Any, Unit] {
+      def apply(a: Any): Unit = ()
+      def empty: Unit = ()
+      def append(a: Unit, b: Unit) = ()
+    }
 }

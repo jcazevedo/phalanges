@@ -5,13 +5,6 @@ import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 
 class FingerTreeSpec extends Specification with ScalaCheck {
-  implicit val unitMeasured: Measured[Any, Unit] =
-    new Measured[Any, Unit] {
-      def apply(a: Any): Unit = ()
-      def empty: Unit = ()
-      def append(a: Unit, b: Unit) = ()
-    }
-
   "A FingerTree" should {
     "support an apply method" in forAll { ints: List[Int] =>
       val ft = FingerTree.apply(ints: _*)
