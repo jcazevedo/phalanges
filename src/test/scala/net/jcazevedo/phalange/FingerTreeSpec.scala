@@ -5,6 +5,17 @@ import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 
 class FingerTreeSpec extends Specification with ScalaCheck {
+  implicit val unitMeasured: Measured[Any, Unit] =
+    new Measured[Any, Unit] {
+      def apply(a: Any): Unit = ()
+    }
+
+  implicit val unitMonoid: Monoid[Unit] =
+    new Monoid[Unit] {
+      def empty: Unit = ()
+      def append(a: Unit, b: Unit) = ()
+    }
+
   "A FingerTree" should {
     "support an apply method" in forAll { ints: List[Int] =>
       val ft = FingerTree.apply(ints: _*)
@@ -40,7 +51,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support isEmpty and nonEmpty operations in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.isEmpty ==== true
       ft.nonEmpty ==== false
     }
@@ -53,7 +64,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a headL operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.headL must throwA[NoSuchElementException]
     }
 
@@ -65,7 +76,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a headLOption operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.headLOption ==== None
     }
 
@@ -77,7 +88,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a tailL operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.tailL must throwA[NoSuchElementException]
     }
 
@@ -89,7 +100,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a tailLOption operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.tailLOption ==== None
     }
 
@@ -101,7 +112,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a headR operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.headR must throwA[NoSuchElementException]
     }
 
@@ -113,7 +124,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a headROption operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.headROption ==== None
     }
 
@@ -125,7 +136,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a tailR operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.tailR must throwA[NoSuchElementException]
     }
 
@@ -137,7 +148,7 @@ class FingerTreeSpec extends Specification with ScalaCheck {
     }
 
     "support a tailROption operation in empty trees" in {
-      val ft = FingerTree.empty[Int]
+      val ft = FingerTree.empty[Unit, Int]
       ft.tailROption ==== None
     }
 
