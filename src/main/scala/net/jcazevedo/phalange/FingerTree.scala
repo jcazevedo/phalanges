@@ -27,7 +27,7 @@ sealed trait FingerTree[V, +A] {
         sf.foldLeft(m.value.foldLeft(pr.foldLeft(z)(op))((b, a) => a.foldLeft(b)(op)))(op)
     }
 
-  def +:[B >: A](a: B)(implicit measured: Measured[B, V], monoid: Monoid[V]): FingerTree[V, B] =
+  def +:[B >: A](a: B)(implicit measured: Measured[B, V]): FingerTree[V, B] =
     this match {
       case FingerTree.Empty() =>
         FingerTree.Single(a)
@@ -48,7 +48,7 @@ sealed trait FingerTree[V, +A] {
         FingerTree.deep(Digit.Two(a, b), new Lazy(Node.node3(c, d, e) +: m.value), sf)
     }
 
-  def :+[B >: A](a: B)(implicit measured: Measured[B, V], monoid: Monoid[V]): FingerTree[V, B] =
+  def :+[B >: A](a: B)(implicit measured: Measured[B, V]): FingerTree[V, B] =
     this match {
       case FingerTree.Empty() =>
         FingerTree.Single(a)
@@ -69,10 +69,10 @@ sealed trait FingerTree[V, +A] {
         FingerTree.deep(pr, new Lazy(m.value :+ Node.node3(e, d, c)), Digit.Two(b, a))
     }
 
-  def ++[B >: A](that: FingerTree[V, B])(implicit measured: Measured[B, V], monoid: Monoid[V]): FingerTree[V, B] =
+  def ++[B >: A](that: FingerTree[V, B])(implicit measured: Measured[B, V]): FingerTree[V, B] =
     FingerTree.app3(this, List.empty, that)
 
-  private def viewL(implicit measured: Measured[A, V], monoid: Monoid[V]): ViewL[V, A] =
+  private def viewL(implicit measured: Measured[A, V]): ViewL[V, A] =
     this match {
       case FingerTree.Empty() =>
         ViewL.Empty()
@@ -105,49 +105,49 @@ sealed trait FingerTree[V, +A] {
         ViewL.Cons(a, new Lazy(FingerTree.deep(Digit.Three(b, c, d), m, sf)))
     }
 
-  def lazyListL(implicit measured: Measured[A, V], monoid: Monoid[V]): LazyList[A] =
+  def lazyListL(implicit measured: Measured[A, V]): LazyList[A] =
     LazyList.unfold(this)(_.viewL match {
       case ViewL.Cons(head, tail) => Some((head, tail.value))
       case ViewL.Empty()          => None
     })
 
-  def toList(implicit measured: Measured[A, V], monoid: Monoid[V]): List[A] =
+  def toList(implicit measured: Measured[A, V]): List[A] =
     lazyListL.toList
 
-  def isEmpty(implicit measured: Measured[A, V], monoid: Monoid[V]): Boolean =
+  def isEmpty(implicit measured: Measured[A, V]): Boolean =
     viewL match {
       case ViewL.Cons(_, _) => false
       case ViewL.Empty()    => true
     }
 
-  def nonEmpty(implicit measured: Measured[A, V], monoid: Monoid[V]): Boolean =
+  def nonEmpty(implicit measured: Measured[A, V]): Boolean =
     !isEmpty
 
-  def headL(implicit measured: Measured[A, V], monoid: Monoid[V]): A =
+  def headL(implicit measured: Measured[A, V]): A =
     viewL match {
       case ViewL.Cons(a, _) => a
       case ViewL.Empty()    => throw new NoSuchElementException("head of empty finger tree")
     }
 
-  def tailL(implicit measured: Measured[A, V], monoid: Monoid[V]): FingerTree[V, A] =
+  def tailL(implicit measured: Measured[A, V]): FingerTree[V, A] =
     viewL match {
       case ViewL.Cons(_, rest) => rest.value
       case ViewL.Empty()       => throw new NoSuchElementException("tail of empty finger tree")
     }
 
-  def headLOption(implicit measured: Measured[A, V], monoid: Monoid[V]): Option[A] =
+  def headLOption(implicit measured: Measured[A, V]): Option[A] =
     viewL match {
       case ViewL.Cons(a, _) => Some(a)
       case ViewL.Empty()    => None
     }
 
-  def tailLOption(implicit measured: Measured[A, V], monoid: Monoid[V]): Option[FingerTree[V, A]] =
+  def tailLOption(implicit measured: Measured[A, V]): Option[FingerTree[V, A]] =
     viewL match {
       case ViewL.Cons(_, rest) => Some(rest.value)
       case ViewL.Empty()       => None
     }
 
-  private def viewR(implicit measured: Measured[A, V], monoid: Monoid[V]): ViewR[V, A] =
+  private def viewR(implicit measured: Measured[A, V]): ViewR[V, A] =
     this match {
       case FingerTree.Empty() =>
         ViewR.Empty()
@@ -180,31 +180,31 @@ sealed trait FingerTree[V, +A] {
         ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit.Three(d, c, b))), a)
     }
 
-  def lazyListR(implicit measured: Measured[A, V], monoid: Monoid[V]): LazyList[A] =
+  def lazyListR(implicit measured: Measured[A, V]): LazyList[A] =
     LazyList.unfold(this)(_.viewR match {
       case ViewR.Cons(tail, head) => Some((head, tail.value))
       case ViewR.Empty()          => None
     })
 
-  def headR(implicit measured: Measured[A, V], monoid: Monoid[V]): A =
+  def headR(implicit measured: Measured[A, V]): A =
     viewR match {
       case ViewR.Cons(_, a) => a
       case ViewR.Empty()    => throw new NoSuchElementException("head of empty finger tree")
     }
 
-  def tailR(implicit measured: Measured[A, V], monoid: Monoid[V]): FingerTree[V, A] =
+  def tailR(implicit measured: Measured[A, V]): FingerTree[V, A] =
     viewR match {
       case ViewR.Cons(rest, _) => rest.value
       case ViewR.Empty()       => throw new NoSuchElementException("tail of empty finger tree")
     }
 
-  def headROption(implicit measured: Measured[A, V], monoid: Monoid[V]): Option[A] =
+  def headROption(implicit measured: Measured[A, V]): Option[A] =
     viewR match {
       case ViewR.Cons(_, a) => Some(a)
       case ViewR.Empty()    => None
     }
 
-  def tailROption(implicit measured: Measured[A, V], monoid: Monoid[V]): Option[FingerTree[V, A]] =
+  def tailROption(implicit measured: Measured[A, V]): Option[FingerTree[V, A]] =
     viewR match {
       case ViewR.Cons(rest, _) => Some(rest.value)
       case ViewR.Empty()       => None
@@ -217,21 +217,15 @@ object FingerTree {
   private[phalange] case class Deep[V, A](v: Lazy[V], pr: Digit[A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[A])
       extends FingerTree[V, A]
 
-  private[phalange] def deep[V, A](pr: Digit[A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[A])(implicit
-      measured: Measured[A, V],
-      monoid: Monoid[V]
-  ): FingerTree[V, A] =
+  private[phalange] def deep[V, A](pr: Digit[A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[A])(implicit measured: Measured[A, V]): FingerTree[V, A] =
     FingerTree.Deep(
-      new Lazy(monoid.append(monoid.append(Measured.measure(pr), Measured.measure(m.value)), Measured.measure(sf))),
+      new Lazy(measured.append(measured.append(Measured.measure(pr), Measured.measure(m.value)), Measured.measure(sf))),
       pr,
       m,
       sf
     )
 
-  private[phalange] def nodes[V, A](a: A, b: A, rest: A*)(implicit
-      measured: Measured[A, V],
-      monoid: Monoid[V]
-  ): List[Node[V, A]] =
+  private[phalange] def nodes[V, A](a: A, b: A, rest: A*)(implicit measured: Measured[A, V]): List[Node[V, A]] =
     if (rest.isEmpty)
       List(Node.node2(a, b))
     else if (rest.length == 1)
@@ -241,10 +235,7 @@ object FingerTree {
     else
       Node.node3(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
 
-  private[phalange] def app3[V, A](a: FingerTree[V, A], b: List[A], c: FingerTree[V, A])(implicit
-      measured: Measured[A, V],
-      monoid: Monoid[V]
-  ): FingerTree[V, A] =
+  private[phalange] def app3[V, A](a: FingerTree[V, A], b: List[A], c: FingerTree[V, A])(implicit measured: Measured[A, V]): FingerTree[V, A] =
     (a, b, c) match {
       case (FingerTree.Empty(), ts, xs) =>
         ts.foldRight(xs)(_ +: _)
@@ -286,6 +277,6 @@ object FingerTree {
   def empty[V, A]: FingerTree[V, A] =
     Empty()
 
-  def apply[V, A](as: A*)(implicit measured: Measured[A, V], monoid: Monoid[V]): FingerTree[V, A] =
+  def apply[V, A](as: A*)(implicit measured: Measured[A, V]): FingerTree[V, A] =
     as.foldRight(FingerTree.empty[V, A])(_ +: _)
 }
