@@ -219,7 +219,7 @@ object FingerTree {
 
   private[phalange] def deep[V, A](pr: Digit[A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[A])(implicit measured: Measured[A, V]): FingerTree[V, A] =
     FingerTree.Deep(
-      new Lazy(measured.append(measured.append(Measured.measure(pr), Measured.measure(m.value)), Measured.measure(sf))),
+      new Lazy(measured.append(measured.append(Measured.measure[Digit[A], V](pr), Measured.measure[FingerTree[V, Node[V, A]], V](m.value)), Measured.measure[Digit[A], V](sf))),
       pr,
       m,
       sf
