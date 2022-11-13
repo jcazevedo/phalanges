@@ -31,6 +31,20 @@ class FingerTreeSpec extends Specification with ScalaCheck {
       ft.toList ==== existing ++ toAppend
     }
 
+    "support isEmpty and nonEmpty operations in non-empty trees" in forAll { ints: List[Int] =>
+      ints.nonEmpty ==> {
+        val ft = FingerTree.apply(ints: _*)
+        ft.isEmpty ==== false
+        ft.nonEmpty ==== true
+      }
+    }
+
+    "support isEmpty and nonEmpty operations in empty trees" in {
+      val ft = FingerTree.empty[Int]
+      ft.isEmpty ==== true
+      ft.nonEmpty ==== false
+    }
+
     "support a headL operation in non-empty trees" in forAll { ints: List[Int] =>
       ints.nonEmpty ==> {
         val ft = FingerTree.apply(ints: _*)
