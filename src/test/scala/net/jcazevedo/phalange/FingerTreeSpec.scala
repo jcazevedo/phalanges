@@ -3,12 +3,8 @@ package net.jcazevedo.phalange
 import org.scalacheck.Prop.forAll
 import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
-import org.specs2.scalacheck.Parameters
 
 class FingerTreeSpec extends Specification with ScalaCheck {
-  // We're deliberately increasing the number of tests in an attempt to increase coverage.
-  implicit val params: Parameters = Parameters(minTestsOk = 100000)
-
   "A FingerTree" should {
     "support an apply method" in forAll { ints: List[Int] =>
       val ft = FingerTree.apply(ints: _*)
