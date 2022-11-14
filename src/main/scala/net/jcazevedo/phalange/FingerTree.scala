@@ -231,11 +231,7 @@ object FingerTree {
       ): B =
         deep(
           new Lazy(
-            measured.append(
-              measured
-                .append(Measured.measure[Digit[A], V](pr), Measured.measure[FingerTree[V, Node[V, A]], V](m.value)),
-              Measured.measure[Digit[A], V](sf)
-            )
+            measured.append(measured.append(Measured.measure(pr), Measured.measure(m.value)), Measured.measure(sf))
           ),
           pr,
           m,
