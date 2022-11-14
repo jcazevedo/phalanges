@@ -202,13 +202,21 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
 object FingerTree {
   private[phalange] def empty[V, A](implicit measured: Measured[A, V]): FingerTree[V, A] =
     new FingerTree[V, A] {
-      def fold[B](empty: => B, single: A => B,deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B): B =
+      def fold[B](
+          empty: => B,
+          single: A => B,
+          deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+      ): B =
         empty
     }
 
   private[phalange] def single[V, A](a: A)(implicit measured: Measured[A, V]): FingerTree[V, A] =
     new FingerTree[V, A] {
-      def fold[B](empty: => B, single: A => B,deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B): B =
+      def fold[B](
+          empty: => B,
+          single: A => B,
+          deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+      ): B =
         single(a)
     }
 
@@ -216,7 +224,11 @@ object FingerTree {
       measured: Measured[A, V]
   ): FingerTree[V, A] =
     new FingerTree[V, A] {
-      def fold[B](empty: => B,single: A => B,deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B): B =
+      def fold[B](
+          empty: => B,
+          single: A => B,
+          deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+      ): B =
         deep(
           new Lazy(
             measured.append(measured.append(Measured.measure(pr), Measured.measure(m.value)), Measured.measure(sf))
