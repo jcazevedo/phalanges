@@ -4,7 +4,7 @@ trait Measured[-A, V] extends Monoid[V] {
   def apply(a: A): V
 }
 
-object Measured extends LowPriorityImplicits {
+object Measured {
   private[phalange] implicit def nodeMeasured[A, V](implicit monoid: Monoid[V]): Measured[Node[V, A], V] =
     new Measured[Node[V, A], V] {
       def apply(a: Node[V, A]): V =
@@ -34,7 +34,7 @@ object Measured extends LowPriorityImplicits {
             append(append(measured.apply(a), measured.apply(b)), measured.apply(c))
 
           case Digit.Four(a, b, c, d) =>
-            append(append(append(measured.apply(a), measured.apply(b)), measured.apply(c)),measured.apply(d))
+            append(append(append(measured.apply(a), measured.apply(b)), measured.apply(c)), measured.apply(d))
         }
 
       def empty: V =
@@ -44,14 +44,12 @@ object Measured extends LowPriorityImplicits {
         measured.append(a, b)
     }
 
-  private[phalange] implicit def fingerTreeMeasure[A, V](implicit measured: Measured[A, V]): Measured[FingerTree[V, A], V] =
+  private[phalange] implicit def fingerTreeMeasure[A, V](implicit
+      measured: Measured[A, V]
+  ): Measured[FingerTree[V, A], V] =
     new Measured[FingerTree[V, A], V] {
       def apply(a: FingerTree[V, A]): V =
-        a match {
-          case FingerTree.Empty()          => empty
-          case FingerTree.Single(x)        => measured.apply(x)
-          case FingerTree.Deep(v, _, _, _) => v.value
-        }
+        a.fold(empty, measured.apply, (v, _, _, _) => v.value)
 
       def empty: V =
         measured.empty
@@ -62,16 +60,4 @@ object Measured extends LowPriorityImplicits {
 
   private[phalange] def measure[A, V](a: A)(implicit measured: Measured[A, V]): V =
     measured.apply(a)
-}
-
-trait LowPriorityImplicits {
-  /**
-   * A default implementation for when we don't want any measurements.
-   */
-  implicit val unitMeasured: Measured[Any, Unit] =
-    new Measured[Any, Unit] {
-      def apply(a: Any): Unit = ()
-      def empty: Unit = ()
-      def append(a: Unit, b: Unit) = ()
-    }
 }
