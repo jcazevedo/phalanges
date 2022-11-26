@@ -8,10 +8,7 @@ object Measured {
   private[phalange] implicit def nodeMeasured[A, V](implicit monoid: Monoid[V]): Measured[Node[V, A], V] =
     new Measured[Node[V, A], V] {
       def apply(a: Node[V, A]): V =
-        a match {
-          case Node.Node2(v, _, _)    => v
-          case Node.Node3(v, _, _, _) => v
-        }
+        a.measure
 
       def empty: V =
         monoid.empty
