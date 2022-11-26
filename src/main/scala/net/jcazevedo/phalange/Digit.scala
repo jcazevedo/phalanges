@@ -1,6 +1,6 @@
 package net.jcazevedo.phalange
 
-private[phalange] sealed abstract class Digit[V, +A] extends Iterable[A] {
+private[phalange] sealed abstract class Digit[V, A] extends Iterable[A] {
   private[phalange] def fold[B](
       one: (Lazy[V], A) => B,
       two: (Lazy[V], A, A) => B,
