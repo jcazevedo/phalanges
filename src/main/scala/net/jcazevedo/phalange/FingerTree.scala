@@ -9,6 +9,9 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
       deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
   ): B
 
+  def measure: V =
+    fold(empty = measured.empty, single = a => measured.apply(a), deep = (lm, _, _, _) => lm.value)
+
   def foldRight[B](z: B)(op: (A, B) => B): B =
     fold(
       empty = z,
@@ -230,9 +233,7 @@ object FingerTree {
           deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
       ): B =
         deep(
-          new Lazy(
-            measured.append(measured.append(Measured.measure(pr), Measured.measure(m.value)), Measured.measure(sf))
-          ),
+          new Lazy(measured.append(Measured.measure(pr), measured.append(m.value.measure, Measured.measure(sf)))),
           pr,
           m,
           sf
