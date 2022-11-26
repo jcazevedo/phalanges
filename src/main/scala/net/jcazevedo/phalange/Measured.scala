@@ -44,20 +44,6 @@ object Measured {
         measured.append(a, b)
     }
 
-  private[phalange] implicit def fingerTreeMeasure[A, V](implicit
-      measured: Measured[A, V]
-  ): Measured[FingerTree[V, A], V] =
-    new Measured[FingerTree[V, A], V] {
-      def apply(a: FingerTree[V, A]): V =
-        a.fold(empty, measured.apply, (v, _, _, _) => v.value)
-
-      def empty: V =
-        measured.empty
-
-      def append(a: V, b: V): V =
-        measured.append(a, b)
-    }
-
   private[phalange] def measure[A, V](a: A)(implicit measured: Measured[A, V]): V =
     measured.apply(a)
 }
