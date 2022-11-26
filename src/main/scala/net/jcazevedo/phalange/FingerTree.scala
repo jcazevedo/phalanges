@@ -6,7 +6,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
   private[phalange] def fold[B](
       empty: => B,
       single: A => B,
-      deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+      deep: (Lazy[V], Digit[V, A], Lazy[FingerTree[V, Node[V, A]]], Digit[V, A]) => B
   ): B
 
   def measure: V =
@@ -29,39 +29,27 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
   def +:(a: A): FingerTree[V, A] =
     fold(
       empty = FingerTree.single(a),
-      single = b => FingerTree.deep(Digit.One(a), new Lazy(FingerTree.empty), Digit.One(b)),
-      deep = {
-        case (_, Digit.One(b), m, sf) =>
-          FingerTree.deep(Digit.Two(a, b), m, sf)
-
-        case (_, Digit.Two(b, c), m, sf) =>
-          FingerTree.deep(Digit.Three(a, b, c), m, sf)
-
-        case (_, Digit.Three(b, c, d), m, sf) =>
-          FingerTree.deep(Digit.Four(a, b, c, d), m, sf)
-
-        case (_, Digit.Four(b, c, d, e), m, sf) =>
-          FingerTree.deep(Digit.Two(a, b), new Lazy(Node(c, d, e) +: m.value), sf)
-      }
+      single = b => FingerTree.deep(Digit(a), new Lazy(FingerTree.empty), Digit(b)),
+      deep = (_, pr, m, sf) =>
+        pr.fold(
+          one = (_, b) => FingerTree.deep(Digit(a, b), m, sf),
+          two = (_, b, c) => FingerTree.deep(Digit(a, b, c), m, sf),
+          three = (_, b, c, d) => FingerTree.deep(Digit(a, b, c, d), m, sf),
+          four = (_, b, c, d, e) => FingerTree.deep(Digit(a, b), new Lazy(Node(c, d, e) +: m.value), sf)
+        )
     )
 
   def :+(a: A): FingerTree[V, A] =
     fold(
       empty = FingerTree.single(a),
-      single = b => FingerTree.deep(Digit.One(b), new Lazy(FingerTree.empty), Digit.One(a)),
-      deep = {
-        case (_, pr, m, Digit.One(b)) =>
-          FingerTree.deep(pr, m, Digit.Two(b, a))
-
-        case (_, pr, m, Digit.Two(c, b)) =>
-          FingerTree.deep(pr, m, Digit.Three(c, b, a))
-
-        case (_, pr, m, Digit.Three(d, c, b)) =>
-          FingerTree.deep(pr, m, Digit.Four(d, c, b, a))
-
-        case (_, pr, m, Digit.Four(e, d, c, b)) =>
-          FingerTree.deep(pr, new Lazy(m.value :+ Node(e, d, c)), Digit.Two(b, a))
-      }
+      single = b => FingerTree.deep(Digit(b), new Lazy(FingerTree.empty), Digit(a)),
+      deep = (_, pr, m, sf) =>
+        sf.fold(
+          one = (_, b) => FingerTree.deep(pr, m, Digit(b, a)),
+          two = (_, c, b) => FingerTree.deep(pr, m, Digit(c, b, a)),
+          three = (_, d, c, b) => FingerTree.deep(pr, m, Digit(d, c, b, a)),
+          four = (_, e, d, c, b) => FingerTree.deep(pr, new Lazy(m.value :+ Node(e, d, c)), Digit(b, a))
+        )
     )
 
   def ++(that: FingerTree[V, A]): FingerTree[V, A] =
@@ -71,31 +59,26 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     fold(
       empty = ViewL.Empty(),
       single = a => ViewL.Cons(a, new Lazy(FingerTree.empty)),
-      deep = {
-        case (_, Digit.One(a), m, sf) =>
-          ViewL.Cons(
-            a,
-            new Lazy(m.value.viewL match {
-              case ViewL.Empty() =>
-                FingerTree.measured(sf.toSeq: _*)
+      deep = (_, pr, m, sf) =>
+        pr.fold(
+          one = (_, a) =>
+            ViewL.Cons(
+              a,
+              new Lazy(m.value.viewL match {
+                case ViewL.Empty() =>
+                  FingerTree.measured(sf.toSeq: _*)
 
-              case ViewL.Cons(node, rest) =>
-                node.fold(
-                  node2 = (_, a, b) => FingerTree.deep(Digit.Two(a, b), rest, sf),
-                  node3 = (_, a, b, c) => FingerTree.deep(Digit.Three(a, b, c), rest, sf)
-                )
-            })
-          )
-
-        case (_, Digit.Two(a, b), m, sf) =>
-          ViewL.Cons(a, new Lazy(FingerTree.deep(Digit.One(b), m, sf)))
-
-        case (_, Digit.Three(a, b, c), m, sf) =>
-          ViewL.Cons(a, new Lazy(FingerTree.deep(Digit.Two(b, c), m, sf)))
-
-        case (_, Digit.Four(a, b, c, d), m, sf) =>
-          ViewL.Cons(a, new Lazy(FingerTree.deep(Digit.Three(b, c, d), m, sf)))
-      }
+                case ViewL.Cons(node, rest) =>
+                  node.fold(
+                    node2 = (_, a, b) => FingerTree.deep(Digit(a, b), rest, sf),
+                    node3 = (_, a, b, c) => FingerTree.deep(Digit(a, b, c), rest, sf)
+                  )
+              })
+            ),
+          two = (_, a, b) => ViewL.Cons(a, new Lazy(FingerTree.deep(Digit(b), m, sf))),
+          three = (_, a, b, c) => ViewL.Cons(a, new Lazy(FingerTree.deep(Digit(b, c), m, sf))),
+          four = (_, a, b, c, d) => ViewL.Cons(a, new Lazy(FingerTree.deep(Digit(b, c, d), m, sf)))
+        )
     )
 
   def lazyListL: LazyList[A] =
@@ -144,31 +127,26 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     fold(
       empty = ViewR.Empty(),
       single = a => ViewR.Cons(new Lazy(FingerTree.empty), a),
-      deep = {
-        case (_, pr, m, Digit.One(a)) =>
-          ViewR.Cons(
-            new Lazy(m.value.viewR match {
-              case ViewR.Empty() =>
-                FingerTree.measured(pr.toSeq: _*)
+      deep = (_, pr, m, sf) =>
+        sf.fold(
+          one = (_, a) =>
+            ViewR.Cons(
+              new Lazy(m.value.viewR match {
+                case ViewR.Empty() =>
+                  FingerTree.measured(pr.toSeq: _*)
 
-              case ViewR.Cons(rest, node) =>
-                node.fold(
-                  node2 = (_, b, a) => FingerTree.deep(pr, rest, Digit.Two(b, a)),
-                  node3 = (_, c, b, a) => FingerTree.deep(pr, rest, Digit.Three(c, b, a))
-                )
-            }),
-            a
-          )
-
-        case (_, pr, m, Digit.Two(b, a)) =>
-          ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit.One(b))), a)
-
-        case (_, pr, m, Digit.Three(c, b, a)) =>
-          ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit.Two(c, b))), a)
-
-        case (_, pr, m, Digit.Four(d, c, b, a)) =>
-          ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit.Three(d, c, b))), a)
-      }
+                case ViewR.Cons(rest, node) =>
+                  node.fold(
+                    node2 = (_, b, a) => FingerTree.deep(pr, rest, Digit(b, a)),
+                    node3 = (_, c, b, a) => FingerTree.deep(pr, rest, Digit(c, b, a))
+                  )
+              }),
+              a
+            ),
+          two = (_, b, a) => ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit(b))), a),
+          three = (_, c, b, a) => ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit(c, b))), a),
+          four = (_, d, c, b, a) => ViewR.Cons(new Lazy(FingerTree.deep(pr, m, Digit(d, c, b))), a)
+        )
     )
 
   def lazyListR: LazyList[A] =
@@ -208,7 +186,7 @@ object FingerTree {
       def fold[B](
           empty: => B,
           single: A => B,
-          deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+          deep: (Lazy[V], Digit[V, A], Lazy[FingerTree[V, Node[V, A]]], Digit[V, A]) => B
       ): B =
         empty
     }
@@ -218,22 +196,22 @@ object FingerTree {
       def fold[B](
           empty: => B,
           single: A => B,
-          deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+          deep: (Lazy[V], Digit[V, A], Lazy[FingerTree[V, Node[V, A]]], Digit[V, A]) => B
       ): B =
         single(a)
     }
 
-  private[phalange] def deep[V, A](pr: Digit[A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[A])(implicit
+  private[phalange] def deep[V, A](pr: Digit[V, A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[V, A])(implicit
       measured: Measured[A, V]
   ): FingerTree[V, A] =
     new FingerTree[V, A] {
       def fold[B](
           empty: => B,
           single: A => B,
-          deep: (Lazy[V], Digit[A], Lazy[FingerTree[V, Node[V, A]]], Digit[A]) => B
+          deep: (Lazy[V], Digit[V, A], Lazy[FingerTree[V, Node[V, A]]], Digit[V, A]) => B
       ): B =
         deep(
-          new Lazy(measured.append(Measured.measure(pr), measured.append(m.value.measure, Measured.measure(sf)))),
+          new Lazy(measured.append(pr.measure, measured.append(m.value.measure, sf.measure))),
           pr,
           m,
           sf
@@ -250,50 +228,43 @@ object FingerTree {
     else
       Node(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
 
-  private[phalange] def app3[V, A](a: FingerTree[V, A], b: List[A], c: FingerTree[V, A])(implicit
+  private[phalange] def app3[V, A](a: FingerTree[V, A], ts: List[A], c: FingerTree[V, A])(implicit
       measured: Measured[A, V]
   ): FingerTree[V, A] =
     a.fold(
-      empty = b.foldRight(c)(_ +: _),
-      single = x => x +: (b.foldRight(c)(_ +: _)),
+      empty = ts.foldRight(c)(_ +: _),
+      single = x => x +: (ts.foldRight(c)(_ +: _)),
       deep = (_, pr1, m1, sf1) =>
         c.fold(
-          empty = b.foldLeft(a)(_ :+ _),
-          single = x => b.foldLeft(a)(_ :+ _) :+ x,
+          empty = ts.foldLeft(a)(_ :+ _),
+          single = x => ts.foldLeft(a)(_ :+ _) :+ x,
           deep = (_, pr2, m2, sf2) =>
-            (pr1, m1, sf1, b, pr2, m2, sf2) match {
-              case (pr1, m1, Digit.One(a), Nil, Digit.One(b), m2, sf2) =>
-                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b), m2.value)), sf2)
-
-              case (pr1, m1, Digit.One(a), Nil, Digit.Two(b, c), m2, sf2) =>
-                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c), m2.value)), sf2)
-
-              case (pr1, m1, Digit.One(a), Nil, Digit.Three(b, c, d), m2, sf2) =>
-                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c, d), m2.value)), sf2)
-
-              case (pr1, m1, Digit.One(a), Nil, Digit.Four(b, c, d, e), m2, sf2) =>
-                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c, d, e), m2.value)), sf2)
-
-              case (pr1, m1, Digit.One(a), ts, pr2, m2, sf2) =>
-                FingerTree.deep(
-                  pr1,
-                  new Lazy(app3(m1.value, nodes(a, ts.head, (ts.tail ++ pr2.toSeq): _*), m2.value)),
-                  sf2
-                )
-
-              case (pr1, m1, Digit.Two(a, b), ts, pr2, m2, sf2) =>
-                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (ts ++ pr2.toSeq): _*), m2.value)), sf2)
-
-              case (pr1, m1, Digit.Three(a, b, c), ts, pr2, m2, sf2) =>
-                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (c +: (ts ++ pr2.toSeq)): _*), m2.value)), sf2)
-
-              case (pr1, m1, Digit.Four(a, b, c, d), ts, pr2, m2, sf2) =>
+            sf1.fold(
+              one = (_, a) =>
+                if (ts.isEmpty)
+                  pr2.fold(
+                    one = (_, b) => FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b), m2.value)), sf2),
+                    two = (_, b, c) => FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c), m2.value)), sf2),
+                    three =
+                      (_, b, c, d) => FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c, d), m2.value)), sf2),
+                    four = (_, b, c, d, e) =>
+                      FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, c, d, e), m2.value)), sf2)
+                  )
+                else
+                  FingerTree
+                    .deep(pr1, new Lazy(app3(m1.value, nodes(a, ts.head, (ts.tail ++ pr2.toSeq): _*), m2.value)), sf2),
+              two = (_, a, b) =>
+                FingerTree.deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (ts ++ pr2.toSeq): _*), m2.value)), sf2),
+              three = (_, a, b, c) =>
+                FingerTree
+                  .deep(pr1, new Lazy(app3(m1.value, nodes(a, b, (c +: (ts ++ pr2.toSeq)): _*), m2.value)), sf2),
+              four = (_, a, b, c, d) =>
                 FingerTree.deep(
                   pr1,
                   new Lazy(app3(m1.value, nodes(a, b, (Seq(c, d) ++ ts ++ pr2.toSeq): _*), m2.value)),
                   sf2
                 )
-            }
+            )
         )
     )
 
