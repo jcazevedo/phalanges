@@ -57,71 +57,53 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
 
   private def viewL: ViewL[V, A] =
     fold(
-      empty = ViewL.Empty(),
-      single = a => ViewL.Cons(a, new Lazy(FingerTree.empty)),
+      empty = ViewL.empty,
+      single = a => ViewL.cons(a, new Lazy(FingerTree.empty)),
       deep = (_, pr, m, sf) =>
         pr.fold(
           one = (_, a) =>
-            ViewL.Cons(
+            ViewL.cons(
               a,
-              new Lazy(m.value.viewL match {
-                case ViewL.Empty() =>
-                  FingerTree.measured(sf.toSeq: _*)
-
-                case ViewL.Cons(node, rest) =>
-                  node.fold(
-                    node2 = (_, a, b) => FingerTree.deep(Digit(a, b), rest, sf),
-                    node3 = (_, a, b, c) => FingerTree.deep(Digit(a, b, c), rest, sf)
-                  )
-              })
+              new Lazy(
+                m.value.viewL.fold(
+                  empty = FingerTree.measured(sf.toSeq: _*),
+                  cons = (node, rest) =>
+                    node.fold(
+                      node2 = (_, a, b) => FingerTree.deep(Digit(a, b), rest, sf),
+                      node3 = (_, a, b, c) => FingerTree.deep(Digit(a, b, c), rest, sf)
+                    )
+                )
+              )
             ),
-          two = (_, a, b) => ViewL.Cons(a, new Lazy(FingerTree.deep(Digit(b), m, sf))),
-          three = (_, a, b, c) => ViewL.Cons(a, new Lazy(FingerTree.deep(Digit(b, c), m, sf))),
-          four = (_, a, b, c, d) => ViewL.Cons(a, new Lazy(FingerTree.deep(Digit(b, c, d), m, sf)))
+          two = (_, a, b) => ViewL.cons(a, new Lazy(FingerTree.deep(Digit(b), m, sf))),
+          three = (_, a, b, c) => ViewL.cons(a, new Lazy(FingerTree.deep(Digit(b, c), m, sf))),
+          four = (_, a, b, c, d) => ViewL.cons(a, new Lazy(FingerTree.deep(Digit(b, c, d), m, sf)))
         )
     )
 
   def lazyListL: LazyList[A] =
-    LazyList.unfold(this)(_.viewL match {
-      case ViewL.Cons(head, tail) => Some((head, tail.value))
-      case ViewL.Empty()          => None
-    })
+    LazyList.unfold(this)(_.viewL.fold(empty = None, cons = (head, tail) => Some((head, tail.value))))
 
   def toList: List[A] =
     lazyListL.toList
 
   def isEmpty: Boolean =
-    viewL match {
-      case ViewL.Cons(_, _) => false
-      case ViewL.Empty()    => true
-    }
+    viewL.fold(empty = true, cons = (_, _) => false)
 
   def nonEmpty: Boolean =
     !isEmpty
 
   def headL: A =
-    viewL match {
-      case ViewL.Cons(a, _) => a
-      case ViewL.Empty()    => throw new NoSuchElementException("head of empty finger tree")
-    }
+    viewL.fold(empty = throw new NoSuchElementException("head of empty finger tree"), cons = (a, _) => a)
 
   def tailL: FingerTree[V, A] =
-    viewL match {
-      case ViewL.Cons(_, rest) => rest.value
-      case ViewL.Empty()       => throw new NoSuchElementException("tail of empty finger tree")
-    }
+    viewL.fold(empty = throw new NoSuchElementException("tail of empty finger tree"), cons = (_, rest) => rest.value)
 
   def headLOption: Option[A] =
-    viewL match {
-      case ViewL.Cons(a, _) => Some(a)
-      case ViewL.Empty()    => None
-    }
+    viewL.fold(empty = None, cons = (a, _) => Some(a))
 
   def tailLOption: Option[FingerTree[V, A]] =
-    viewL match {
-      case ViewL.Cons(_, rest) => Some(rest.value)
-      case ViewL.Empty()       => None
-    }
+    viewL.fold(empty = None, cons = (_, rest) => Some(rest.value))
 
   private def viewR: ViewR[V, A] =
     fold(
