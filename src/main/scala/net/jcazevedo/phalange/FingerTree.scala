@@ -41,7 +41,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           FingerTree.deep(Digit.Four(a, b, c, d), m, sf)
 
         case (_, Digit.Four(b, c, d, e), m, sf) =>
-          FingerTree.deep(Digit.Two(a, b), new Lazy(Node.node3(c, d, e) +: m.value), sf)
+          FingerTree.deep(Digit.Two(a, b), new Lazy(Node(c, d, e) +: m.value), sf)
       }
     )
 
@@ -60,7 +60,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           FingerTree.deep(pr, m, Digit.Four(d, c, b, a))
 
         case (_, pr, m, Digit.Four(e, d, c, b)) =>
-          FingerTree.deep(pr, new Lazy(m.value :+ Node.node3(e, d, c)), Digit.Two(b, a))
+          FingerTree.deep(pr, new Lazy(m.value :+ Node(e, d, c)), Digit.Two(b, a))
       }
     )
 
@@ -79,11 +79,11 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
               case ViewL.Empty() =>
                 FingerTree.measured(sf.toSeq: _*)
 
-              case ViewL.Cons(Node.Node2(_, a, b), rest) =>
-                FingerTree.deep(Digit.Two(a, b), rest, sf)
-
-              case ViewL.Cons(Node.Node3(_, a, b, c), rest) =>
-                FingerTree.deep(Digit.Three(a, b, c), rest, sf)
+              case ViewL.Cons(node, rest) =>
+                node.fold(
+                  node2 = (_, a, b) => FingerTree.deep(Digit.Two(a, b), rest, sf),
+                  node3 = (_, a, b, c) => FingerTree.deep(Digit.Three(a, b, c), rest, sf)
+                )
             })
           )
 
@@ -151,11 +151,11 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
               case ViewR.Empty() =>
                 FingerTree.measured(pr.toSeq: _*)
 
-              case ViewR.Cons(rest, Node.Node2(_, b, a)) =>
-                FingerTree.deep(pr, rest, Digit.Two(b, a))
-
-              case ViewR.Cons(rest, Node.Node3(_, c, b, a)) =>
-                FingerTree.deep(pr, rest, Digit.Three(c, b, a))
+              case ViewR.Cons(rest, node) =>
+                node.fold(
+                  node2 = (_, b, a) => FingerTree.deep(pr, rest, Digit.Two(b, a)),
+                  node3 = (_, c, b, a) => FingerTree.deep(pr, rest, Digit.Three(c, b, a))
+                )
             }),
             a
           )
@@ -242,13 +242,13 @@ object FingerTree {
 
   private[phalange] def nodes[V, A](a: A, b: A, rest: A*)(implicit measured: Measured[A, V]): List[Node[V, A]] =
     if (rest.isEmpty)
-      List(Node.node2(a, b))
+      List(Node(a, b))
     else if (rest.length == 1)
-      List(Node.node3(a, b, rest.head))
+      List(Node(a, b, rest.head))
     else if (rest.length == 2)
-      List(Node.node2(a, b), Node.node2(rest.head, rest.tail.head))
+      List(Node(a, b), Node(rest.head, rest.tail.head))
     else
-      Node.node3(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
+      Node(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
 
   private[phalange] def app3[V, A](a: FingerTree[V, A], b: List[A], c: FingerTree[V, A])(implicit
       measured: Measured[A, V]
