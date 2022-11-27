@@ -160,5 +160,18 @@ class FingerTreeSpec extends Specification with ScalaCheck {
       resultFt.foldRight(List.empty[Int])(_ :: _) ==== resultList
       resultFt.foldLeft(0L)(_ + _.toLong) ==== resultList.map(_.toLong).sum
     }
+
+    "support implementing random access sequences" in {
+      implicit val sizeMeasured: Measured[Int, Int] =
+        new Measured[Int, Int] {
+          def apply(v: Int): Int = 1
+          def empty: Int = 0
+          def append(a: Int, b: Int): Int = a + b
+        }
+      forall(0 to 100) { length =>
+        val ft = FingerTree.measured((1 to length): _*)
+        forall((0 to length))(len => ft.takeUntil(_ > len).toList ==== (1 to len).toList)
+      }
+    }
   }
 }

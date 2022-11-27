@@ -145,6 +145,42 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
 
   def tailROption: Option[FingerTree[V, A]] =
     viewR.fold(empty = None, cons = (rest, _) => Some(rest.value))
+
+  private[phalange] def splitTree(p: V => Boolean, i: V): (FingerTree[V, A], A, FingerTree[V, A]) =
+    fold(
+      empty = throw new NoSuchElementException("splitTree of empty finger tree"),
+      single = x => (FingerTree.empty, x, FingerTree.empty),
+      deep = (_, pr, m, sf) => {
+        val vpr = measured.append(i, pr.measure)
+        if (p(vpr)) {
+          val (l, x, r) = pr.split(p, i)
+          (l.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)), x, FingerTree.deepL(r, m, sf))
+        } else {
+          val vm = measured.append(vpr, m.value.measure)
+          if (p(vm)) {
+            val (ml, xs, mr) = m.value.splitTree(p, vpr)
+            val (l, x, r) = xs.toDigit.split(p, measured.append(vpr, ml.measure))
+            (FingerTree.deepR(pr, new Lazy(ml), l), x, FingerTree.deepL(r, new Lazy(mr), sf))
+          } else {
+            val (l, x, r) = sf.split(p, vm)
+            (FingerTree.deepR(pr, m, l), x, r.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)))
+          }
+        }
+      }
+    )
+
+  def split(p: V => Boolean): (FingerTree[V, A], FingerTree[V, A]) =
+    if (isEmpty) (FingerTree.empty, FingerTree.empty)
+    else if (p(measure)) {
+      val (l, x, r) = splitTree(p, measured.empty)
+      (l, x +: r)
+    } else (this, FingerTree.empty)
+
+  def takeUntil(p: V => Boolean): FingerTree[V, A] =
+    split(p)._1
+
+  def dropUntil(p: V => Boolean): FingerTree[V, A] =
+    split(p)._2
 }
 
 object FingerTree {
@@ -184,6 +220,22 @@ object FingerTree {
           sf
         )
     }
+
+  private[phalange] def deepL[V, A](prOpt: Option[Digit[V, A]], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[V, A])(
+      implicit measured: Measured[A, V]
+  ): FingerTree[V, A] =
+    prOpt.fold(
+      m.value.viewL
+        .fold(empty = FingerTree.measured(sf.toSeq: _*), cons = (head, rest) => FingerTree.deep(head.toDigit, rest, sf))
+    )(pr => FingerTree.deep(pr, m, sf))
+
+  private[phalange] def deepR[V, A](pr: Digit[V, A], m: Lazy[FingerTree[V, Node[V, A]]], sfOpt: Option[Digit[V, A]])(
+      implicit measured: Measured[A, V]
+  ): FingerTree[V, A] =
+    sfOpt.fold(
+      m.value.viewR
+        .fold(empty = FingerTree.measured(pr.toSeq: _*), cons = (rest, head) => FingerTree.deep(pr, rest, head.toDigit))
+    )(sf => FingerTree.deep(pr, m, sf))
 
   private[phalange] def nodes[V, A](a: A, b: A, rest: A*)(implicit measured: Measured[A, V]): List[Node[V, A]] =
     if (rest.isEmpty)
