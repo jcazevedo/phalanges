@@ -10,7 +10,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
   ): B
 
   def measure: V =
-    fold(empty = measured.empty, single = a => measured.apply(a), deep = (lm, _, _, _) => lm.run())
+    fold(empty = measured.empty, single = a => measured.apply(a), deep = (lm, _, _, _) => lm.value)
 
   def foldRight[B](z: B)(op: (A, B) => B): B =
     fold(
@@ -19,7 +19,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
       deep = (_, pr, m, sf) =>
         pr.foldRight(m.flatMap(x => Lazy.delay(x.foldRight(sf.foldRight(z)(op))((a, b) => a.foldRight(b)(op)))))(
           (a, b) => b.flatMap(x => Lazy.delay(op(a, x)))
-        ).run()
+        ).value
     )
 
   def foldLeft[B](z: B)(op: (B, A) => B): B =
@@ -29,7 +29,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
       deep = (_, pr, m, sf) =>
         sf.foldLeft(m.flatMap(x => Lazy.delay(x.foldLeft(pr.foldLeft(z)(op))((b, a) => a.foldLeft(b)(op)))))((b, a) =>
           b.flatMap(x => Lazy.delay(op(x, a)))
-        ).run()
+        ).value
     )
 
   def +:(a: A): FingerTree[V, A] =
@@ -88,7 +88,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     )
 
   def lazyListL: LazyList[A] =
-    LazyList.unfold(this)(_.viewL.fold(empty = None, cons = (head, tail) => Some((head, tail.run()))))
+    LazyList.unfold(this)(_.viewL.fold(empty = None, cons = (head, tail) => Some((head, tail.value))))
 
   def toList: List[A] =
     lazyListL.toList
@@ -103,13 +103,13 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     viewL.fold(empty = throw new NoSuchElementException("head of empty finger tree"), cons = (a, _) => a)
 
   def tailL: FingerTree[V, A] =
-    viewL.fold(empty = throw new NoSuchElementException("tail of empty finger tree"), cons = (_, rest) => rest.run())
+    viewL.fold(empty = throw new NoSuchElementException("tail of empty finger tree"), cons = (_, rest) => rest.value)
 
   def headLOption: Option[A] =
     viewL.fold(empty = None, cons = (a, _) => Some(a))
 
   def tailLOption: Option[FingerTree[V, A]] =
-    viewL.fold(empty = None, cons = (_, rest) => Some(rest.run()))
+    viewL.fold(empty = None, cons = (_, rest) => Some(rest.value))
 
   private def viewR: ViewR[V, A] =
     fold(
@@ -138,19 +138,19 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     )
 
   def lazyListR: LazyList[A] =
-    LazyList.unfold(this)(_.viewR.fold(empty = None, cons = (tail, head) => Some((head, tail.run()))))
+    LazyList.unfold(this)(_.viewR.fold(empty = None, cons = (tail, head) => Some((head, tail.value))))
 
   def headR: A =
     viewR.fold(empty = throw new NoSuchElementException("head of empty finger tree"), cons = (_, a) => a)
 
   def tailR: FingerTree[V, A] =
-    viewR.fold(empty = throw new NoSuchElementException("tail of empty finger tree"), cons = (rest, _) => rest.run())
+    viewR.fold(empty = throw new NoSuchElementException("tail of empty finger tree"), cons = (rest, _) => rest.value)
 
   def headROption: Option[A] =
     viewR.fold(empty = None, cons = (_, a) => Some(a))
 
   def tailROption: Option[FingerTree[V, A]] =
-    viewR.fold(empty = None, cons = (rest, _) => Some(rest.run()))
+    viewR.fold(empty = None, cons = (rest, _) => Some(rest.value))
 
   private[phalange] def splitTree(p: V => Boolean, i: V): (FingerTree[V, A], A, FingerTree[V, A]) =
     fold(
@@ -162,9 +162,9 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           val (l, x, r) = pr.split(p, i)
           (l.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)), x, FingerTree.deepL(r, m, sf))
         } else {
-          val vm = measured.append(vpr, m.run().measure)
+          val vm = measured.append(vpr, m.value.measure)
           if (p(vm)) {
-            val (ml, xs, mr) = m.run().splitTree(p, vpr)
+            val (ml, xs, mr) = m.value.splitTree(p, vpr)
             val (l, x, r) = xs.toDigit.split(p, measured.append(vpr, ml.measure))
             (FingerTree.deepR(pr, Lazy.pure(ml), l), x, FingerTree.deepL(r, Lazy.pure(mr), sf))
           } else {
@@ -231,7 +231,7 @@ object FingerTree {
       implicit measured: Measured[A, V]
   ): FingerTree[V, A] =
     prOpt.fold(
-      m.run()
+      m.value
         .viewL
         .fold(empty = FingerTree.measured(sf.toSeq: _*), cons = (head, rest) => FingerTree.deep(head.toDigit, rest, sf))
     )(pr => FingerTree.deep(pr, m, sf))
@@ -240,7 +240,7 @@ object FingerTree {
       implicit measured: Measured[A, V]
   ): FingerTree[V, A] =
     sfOpt.fold(
-      m.run()
+      m.value
         .viewR
         .fold(empty = FingerTree.measured(pr.toSeq: _*), cons = (rest, head) => FingerTree.deep(pr, rest, head.toDigit))
     )(sf => FingerTree.deep(pr, m, sf))
