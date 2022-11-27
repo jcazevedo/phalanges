@@ -1,6 +1,6 @@
 package net.jcazevedo.phalange
 
-private[phalange] sealed abstract class Node[V, A] extends Iterable[A] {
+private[phalange] sealed abstract class Node[V, A](implicit measured: Measured[A, V]) extends Iterable[A] {
   private[phalange] def fold[B](node2: (Lazy[V], A, A) => B, node3: (Lazy[V], A, A, A) => B): B
 
   final def measure: V =
@@ -8,6 +8,9 @@ private[phalange] sealed abstract class Node[V, A] extends Iterable[A] {
 
   final def iterator: Iterator[A] =
     fold(node2 = (_, a, b) => Iterator(a, b), node3 = (_, a, b, c) => Iterator(a, b, c))
+
+  final def toDigit: Digit[V, A] =
+    fold(node2 = (_, a, b) => Digit(a, b), node3 = (_, a, b, c) => Digit(a, b, c))
 }
 
 private[phalange] object Node {
