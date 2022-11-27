@@ -35,7 +35,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           one = (_, b) => FingerTree.deep(Digit(a, b), m, sf),
           two = (_, b, c) => FingerTree.deep(Digit(a, b, c), m, sf),
           three = (_, b, c, d) => FingerTree.deep(Digit(a, b, c, d), m, sf),
-          four = (_, b, c, d, e) => FingerTree.deep(Digit(a, b), m.map(ft => Node(c, d, e) +: ft), sf)
+          four = (_, b, c, d, e) => FingerTree.deep(Digit(a, b), m.flatMap(ft => Lazy.delay(Node(c, d, e) +: ft)), sf)
         )
     )
 
@@ -48,7 +48,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           one = (_, b) => FingerTree.deep(pr, m, Digit(b, a)),
           two = (_, c, b) => FingerTree.deep(pr, m, Digit(c, b, a)),
           three = (_, d, c, b) => FingerTree.deep(pr, m, Digit(d, c, b, a)),
-          four = (_, e, d, c, b) => FingerTree.deep(pr, m.map(ft => ft :+ Node(e, d, c)), Digit(b, a))
+          four = (_, e, d, c, b) => FingerTree.deep(pr, m.flatMap(ft => Lazy.delay(ft :+ Node(e, d, c))), Digit(b, a))
         )
     )
 
@@ -64,13 +64,13 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           one = (_, a) =>
             ViewL.cons(
               a,
-              m.map(
+              m.flatMap(
                 _.viewL.fold(
-                  empty = FingerTree.measured(sf.toSeq: _*),
+                  empty = Lazy.delay(FingerTree.measured(sf.toSeq: _*)),
                   cons = (node, rest) =>
                     node.fold(
-                      node2 = (_, a, b) => FingerTree.deep(Digit(a, b), rest, sf),
-                      node3 = (_, a, b, c) => FingerTree.deep(Digit(a, b, c), rest, sf)
+                      node2 = (_, a, b) => Lazy.delay(FingerTree.deep(Digit(a, b), rest, sf)),
+                      node3 = (_, a, b, c) => Lazy.delay(FingerTree.deep(Digit(a, b, c), rest, sf))
                     )
                 )
               )
@@ -113,13 +113,13 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
         sf.fold(
           one = (_, a) =>
             ViewR.cons(
-              m.map(
+              m.flatMap(
                 _.viewR.fold(
-                  empty = FingerTree.measured(pr.toSeq: _*),
+                  empty = Lazy.delay(FingerTree.measured(pr.toSeq: _*)),
                   cons = (rest, node) =>
                     node.fold(
-                      node2 = (_, b, a) => FingerTree.deep(pr, rest, Digit(b, a)),
-                      node3 = (_, c, b, a) => FingerTree.deep(pr, rest, Digit(c, b, a))
+                      node2 = (_, b, a) => Lazy.delay(FingerTree.deep(pr, rest, Digit(b, a))),
+                      node3 = (_, c, b, a) => Lazy.delay(FingerTree.deep(pr, rest, Digit(c, b, a)))
                     )
                 )
               ),

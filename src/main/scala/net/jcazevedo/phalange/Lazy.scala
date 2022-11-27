@@ -14,7 +14,9 @@ private[phalange] object Lazy {
   private[phalange] def delay[A](x: => A): Lazy[A] = Lazy.Delay(() => x)
 
   private[phalange] case class Pure[+A](value: A) extends Lazy[A]
-  private[phalange] case class Delay[+A](thunk: () => A) extends Lazy[A]
+  private[phalange] case class Delay[+A](thunk: () => A) extends Lazy[A] {
+    lazy val value = thunk()
+  }
   private[phalange] case class FlatMap[A, +B](orig: Lazy[A], f: A => Lazy[B]) extends Lazy[B]
 
   @tailrec
@@ -31,8 +33,8 @@ private[phalange] object Lazy {
           case Pure(value) =>
             run(f(value))
 
-          case Delay(thunk) =>
-            run(f(thunk()))
+          case d: Delay[_] =>
+            run(f(d.value))
 
           case FlatMap(y, g) =>
             run(y.flatMap(a => g(a).flatMap(f)))
