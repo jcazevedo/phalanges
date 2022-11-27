@@ -59,7 +59,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     )
 
   def ++(that: FingerTree[V, A]): FingerTree[V, A] =
-    FingerTree.app3(this, List.empty, that)
+    FingerTree.app3(Lazy.pure(this), List.empty, Lazy.pure(that)).value
 
   private def viewL: ViewL[V, A] =
     fold(
@@ -253,77 +253,39 @@ object FingerTree {
     else
       Node(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
 
-  private[phalange] def app3[V, A](a: FingerTree[V, A], ts: List[A], c: FingerTree[V, A])(implicit
+  private[phalange] def app3[V, A](a: Lazy[FingerTree[V, A]], ts: List[A], c: Lazy[FingerTree[V, A]])(implicit
       measured: Measured[A, V]
-  ): FingerTree[V, A] =
-    a.fold(
-      empty = ts.foldRight(c)(_ +: _),
-      single = x => x +: (ts.foldRight(c)(_ +: _)),
-      deep = (_, pr1, m1, sf1) =>
-        c.fold(
-          empty = ts.foldLeft(a)(_ :+ _),
-          single = x => ts.foldLeft(a)(_ :+ _) :+ x,
-          deep = (_, pr2, m2, sf2) =>
-            sf1.fold(
-              one = (_, a) =>
-                if (ts.isEmpty)
-                  pr2.fold(
-                    one = (_, b) =>
-                      FingerTree
-                        .deep(pr1, m1.flatMap(m1V => m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b), m2V)))), sf2),
-                    two = (_, b, c) =>
-                      FingerTree.deep(
-                        pr1,
-                        m1.flatMap(m1V => m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b, c), m2V)))),
-                        sf2
-                      ),
-                    three = (_, b, c, d) =>
-                      FingerTree.deep(
-                        pr1,
-                        m1.flatMap(m1V => m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b, c, d), m2V)))),
-                        sf2
-                      ),
-                    four = (_, b, c, d, e) =>
-                      FingerTree.deep(
-                        pr1,
-                        m1.flatMap(m1V => m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b, c, d, e), m2V)))),
-                        sf2
+  ): Lazy[FingerTree[V, A]] =
+    a.flatMap(av =>
+      av.fold(
+        empty = c.map(ts.foldRight(_)(_ +: _)),
+        single = x => c.map(cv => x +: (ts.foldRight(cv)(_ +: _))),
+        deep = (_, pr1, m1, sf1) =>
+          c.map(
+            _.fold(
+              empty = ts.foldLeft(av)(_ :+ _),
+              single = x => ts.foldLeft(av)(_ :+ _) :+ x,
+              deep = (_, pr2, m2, sf2) =>
+                sf1.fold(
+                  one = (_, a) =>
+                    if (ts.isEmpty)
+                      pr2.fold(
+                        one = (_, b) => FingerTree.deep(pr1, app3(m1, nodes(a, b), m2), sf2),
+                        two = (_, b, c) => FingerTree.deep(pr1, app3(m1, nodes(a, b, c), m2), sf2),
+                        three = (_, b, c, d) => FingerTree.deep(pr1, app3(m1, nodes(a, b, c, d), m2), sf2),
+                        four = (_, b, c, d, e) => FingerTree.deep(pr1, app3(m1, nodes(a, b, c, d, e), m2), sf2)
                       )
-                  )
-                else
-                  FingerTree
-                    .deep(
-                      pr1,
-                      m1.flatMap(m1V =>
-                        m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, ts.head, (ts.tail ++ pr2.toSeq): _*), m2V)))
-                      ),
-                      sf2
-                    ),
-              two = (_, a, b) =>
-                FingerTree.deep(
-                  pr1,
-                  m1.flatMap(m1V => m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b, (ts ++ pr2.toSeq): _*), m2V)))),
-                  sf2
-                ),
-              three = (_, a, b, c) =>
-                FingerTree
-                  .deep(
-                    pr1,
-                    m1.flatMap(m1V =>
-                      m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b, (c +: (ts ++ pr2.toSeq)): _*), m2V)))
-                    ),
-                    sf2
-                  ),
-              four = (_, a, b, c, d) =>
-                FingerTree.deep(
-                  pr1,
-                  m1.flatMap(m1V =>
-                    m2.flatMap(m2V => Lazy.delay(app3(m1V, nodes(a, b, (Seq(c, d) ++ ts ++ pr2.toSeq): _*), m2V)))
-                  ),
-                  sf2
+                    else
+                      FingerTree.deep(pr1, app3(m1, nodes(a, ts.head, (ts.tail ++ pr2.toSeq): _*), m2), sf2),
+                  two = (_, a, b) => FingerTree.deep(pr1, app3(m1, nodes(a, b, (ts ++ pr2.toSeq): _*), m2), sf2),
+                  three =
+                    (_, a, b, c) => FingerTree.deep(pr1, app3(m1, nodes(a, b, (c +: (ts ++ pr2.toSeq)): _*), m2), sf2),
+                  four = (_, a, b, c, d) =>
+                    FingerTree.deep(pr1, app3(m1, nodes(a, b, (Seq(c, d) ++ ts ++ pr2.toSeq): _*), m2), sf2)
                 )
             )
-        )
+          )
+      )
     )
 
   def measured[V, A](as: A*)(implicit measured: Measured[A, V]): FingerTree[V, A] =
