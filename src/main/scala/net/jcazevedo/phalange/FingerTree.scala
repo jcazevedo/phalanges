@@ -231,8 +231,7 @@ object FingerTree {
       implicit measured: Measured[A, V]
   ): FingerTree[V, A] =
     prOpt.fold(
-      m.value
-        .viewL
+      m.value.viewL
         .fold(empty = FingerTree.measured(sf.toSeq: _*), cons = (head, rest) => FingerTree.deep(head.toDigit, rest, sf))
     )(pr => FingerTree.deep(pr, m, sf))
 
@@ -240,8 +239,7 @@ object FingerTree {
       implicit measured: Measured[A, V]
   ): FingerTree[V, A] =
     sfOpt.fold(
-      m.value
-        .viewR
+      m.value.viewR
         .fold(empty = FingerTree.measured(pr.toSeq: _*), cons = (rest, head) => FingerTree.deep(pr, rest, head.toDigit))
     )(sf => FingerTree.deep(pr, m, sf))
 
