@@ -16,14 +16,20 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     fold(
       empty = z,
       single = op(_, z),
-      deep = (_, pr, m, sf) => pr.foldRight(m.run().foldRight(sf.foldRight(z)(op))((a, b) => a.foldRight(b)(op)))(op)
+      deep = (_, pr, m, sf) =>
+        pr.foldRight(m.flatMap(x => Lazy.delay(x.foldRight(sf.foldRight(z)(op))((a, b) => a.foldRight(b)(op)))))(
+          (a, b) => b.flatMap(x => Lazy.delay(op(a, x)))
+        ).run()
     )
 
   def foldLeft[B](z: B)(op: (B, A) => B): B =
     fold(
       empty = z,
       single = op(z, _),
-      deep = (_, pr, m, sf) => sf.foldLeft(m.run().foldLeft(pr.foldLeft(z)(op))((b, a) => a.foldLeft(b)(op)))(op)
+      deep = (_, pr, m, sf) =>
+        sf.foldLeft(m.flatMap(x => Lazy.delay(x.foldLeft(pr.foldLeft(z)(op))((b, a) => a.foldLeft(b)(op)))))((b, a) =>
+          b.flatMap(x => Lazy.delay(op(x, a)))
+        ).run()
     )
 
   def +:(a: A): FingerTree[V, A] =
