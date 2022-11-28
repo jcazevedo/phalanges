@@ -2,18 +2,18 @@ package net.jcazevedo.phalange
 
 private[phalange] sealed abstract class Digit[V, A](implicit measured: Measured[A, V]) extends Iterable[A] {
   private[phalange] def fold[B](
-      one: (V, A) => B,
-      two: (V, A, A) => B,
-      three: (V, A, A, A) => B,
-      four: (V, A, A, A, A) => B
+      one: (Lazy[V], A) => B,
+      two: (Lazy[V], A, A) => B,
+      three: (Lazy[V], A, A, A) => B,
+      four: (Lazy[V], A, A, A, A) => B
   ): B
 
   final def measure: V =
     fold(
-      one = (m, _) => m,
-      two = (m, _, _) => m,
-      three = (m, _, _, _) => m,
-      four = (m, _, _, _, _) => m
+      one = (lm, _) => lm.value,
+      two = (lm, _, _) => lm.value,
+      three = (lm, _, _, _) => lm.value,
+      four = (lm, _, _, _, _) => lm.value
     )
 
   final def iterator: Iterator[A] =
@@ -57,35 +57,35 @@ private[phalange] object Digit {
   private[phalange] def apply[V, A](a: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
-          one: (V, A) => B,
-          two: (V, A, A) => B,
-          three: (V, A, A, A) => B,
-          four: (V, A, A, A, A) => B
+          one: (Lazy[V], A) => B,
+          two: (Lazy[V], A, A) => B,
+          three: (Lazy[V], A, A, A) => B,
+          four: (Lazy[V], A, A, A, A) => B
       ): B =
-        one(measured.apply(a), a)
+        one(Lazy.delay(measured.apply(a)), a)
     }
 
   private[phalange] def apply[V, A](a: A, b: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
-          one: (V, A) => B,
-          two: (V, A, A) => B,
-          three: (V, A, A, A) => B,
-          four: (V, A, A, A, A) => B
+          one: (Lazy[V], A) => B,
+          two: (Lazy[V], A, A) => B,
+          three: (Lazy[V], A, A, A) => B,
+          four: (Lazy[V], A, A, A, A) => B
       ): B =
-        two(measured.append(measured.apply(a), measured.apply(b)), a, b)
+        two(Lazy.delay(measured.append(measured.apply(a), measured.apply(b))), a, b)
     }
 
   private[phalange] def apply[V, A](a: A, b: A, c: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
-          one: (V, A) => B,
-          two: (V, A, A) => B,
-          three: (V, A, A, A) => B,
-          four: (V, A, A, A, A) => B
+          one: (Lazy[V], A) => B,
+          two: (Lazy[V], A, A) => B,
+          three: (Lazy[V], A, A, A) => B,
+          four: (Lazy[V], A, A, A, A) => B
       ): B =
         three(
-          measured.append(measured.apply(a), measured.append(measured.apply(b), measured.apply(c))),
+          Lazy.delay(measured.append(measured.apply(a), measured.append(measured.apply(b), measured.apply(c)))),
           a,
           b,
           c
@@ -95,15 +95,17 @@ private[phalange] object Digit {
   private[phalange] def apply[V, A](a: A, b: A, c: A, d: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
-          one: (V, A) => B,
-          two: (V, A, A) => B,
-          three: (V, A, A, A) => B,
-          four: (V, A, A, A, A) => B
+          one: (Lazy[V], A) => B,
+          two: (Lazy[V], A, A) => B,
+          three: (Lazy[V], A, A, A) => B,
+          four: (Lazy[V], A, A, A, A) => B
       ): B =
         four(
-          measured.append(
-            measured.apply(a),
-            measured.append(measured.apply(b), measured.append(measured.apply(c), measured.apply(d)))
+          Lazy.delay(
+            measured.append(
+              measured.apply(a),
+              measured.append(measured.apply(b), measured.append(measured.apply(c), measured.apply(d)))
+            )
           ),
           a,
           b,
