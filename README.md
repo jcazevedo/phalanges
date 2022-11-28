@@ -1,12 +1,12 @@
-# Phalange
+# Phalanges
 
 ![Build
-Status](https://github.com/jcazevedo/phalange/actions/workflows/ci.yml/badge.svg)
+Status](https://github.com/jcazevedo/phalanges/actions/workflows/ci.yml/badge.svg)
 [![Coverage
-Status](https://coveralls.io/repos/github/jcazevedo/phalange/badge.svg?branch=master)](https://coveralls.io/github/jcazevedo/phalange?branch=master)
-[![License](https://img.shields.io/dub/l/vibe-d.svg)](https://raw.githubusercontent.com/jcazevedo/phalange/master/LICENSE.md)
+Status](https://coveralls.io/repos/github/jcazevedo/phalanges/badge.svg?branch=master)](https://coveralls.io/github/jcazevedo/phalanges?branch=master)
+[![License](https://img.shields.io/dub/l/vibe-d.svg)](https://raw.githubusercontent.com/jcazevedo/phalanges/master/LICENSE.md)
 
-Phalange is an implementation of finger trees as proposed by Ralf Hinze and Ross
+Phalanges is an implementation of finger trees as proposed by Ralf Hinze and Ross
 Paterson in [this paper][paper].
 
 [paper]: http://www.soi.city.ac.uk/~ross/papers/FingerTree.pdf

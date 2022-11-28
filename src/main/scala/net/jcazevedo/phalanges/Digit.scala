@@ -1,7 +1,7 @@
-package net.jcazevedo.phalange
+package net.jcazevedo.phalanges
 
-private[phalange] sealed abstract class Digit[V, A](implicit measured: Measured[A, V]) extends Iterable[A] {
-  private[phalange] def fold[B](
+private[phalanges] sealed abstract class Digit[V, A](implicit measured: Measured[A, V]) extends Iterable[A] {
+  private[phalanges] def fold[B](
       one: (Lazy[V], A) => B,
       two: (Lazy[V], A, A) => B,
       three: (Lazy[V], A, A, A) => B,
@@ -32,7 +32,7 @@ private[phalange] sealed abstract class Digit[V, A](implicit measured: Measured[
       four = (_, _, a, b, c) => Some(Digit(a, b, c))
     )
 
-  private[phalange] def split(p: V => Boolean, i: V): (Lazy[Option[Digit[V, A]]], A, Lazy[Option[Digit[V, A]]]) = {
+  private[phalanges] def split(p: V => Boolean, i: V): (Lazy[Option[Digit[V, A]]], A, Lazy[Option[Digit[V, A]]]) = {
     val a = head
     tailOption
       .fold[(Lazy[Option[Digit[V, A]]], A, Lazy[Option[Digit[V, A]]])](((Lazy.pure(None), a, Lazy.pure(None)))) {
@@ -55,8 +55,8 @@ private[phalange] sealed abstract class Digit[V, A](implicit measured: Measured[
     )
 }
 
-private[phalange] object Digit {
-  private[phalange] def apply[V, A](a: A)(implicit measured: Measured[A, V]): Digit[V, A] =
+private[phalanges] object Digit {
+  private[phalanges] def apply[V, A](a: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
           one: (Lazy[V], A) => B,
@@ -67,7 +67,7 @@ private[phalange] object Digit {
         one(Lazy.delay(measured.apply(a)), a)
     }
 
-  private[phalange] def apply[V, A](a: A, b: A)(implicit measured: Measured[A, V]): Digit[V, A] =
+  private[phalanges] def apply[V, A](a: A, b: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
           one: (Lazy[V], A) => B,
@@ -78,7 +78,7 @@ private[phalange] object Digit {
         two(Lazy.delay(measured.append(measured.apply(a), measured.apply(b))), a, b)
     }
 
-  private[phalange] def apply[V, A](a: A, b: A, c: A)(implicit measured: Measured[A, V]): Digit[V, A] =
+  private[phalanges] def apply[V, A](a: A, b: A, c: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
           one: (Lazy[V], A) => B,
@@ -94,7 +94,7 @@ private[phalange] object Digit {
         )
     }
 
-  private[phalange] def apply[V, A](a: A, b: A, c: A, d: A)(implicit measured: Measured[A, V]): Digit[V, A] =
+  private[phalanges] def apply[V, A](a: A, b: A, c: A, d: A)(implicit measured: Measured[A, V]): Digit[V, A] =
     new Digit[V, A] {
       def fold[B](
           one: (Lazy[V], A) => B,

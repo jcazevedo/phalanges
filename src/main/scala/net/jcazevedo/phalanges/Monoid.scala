@@ -1,4 +1,4 @@
-package net.jcazevedo.phalange
+package net.jcazevedo.phalanges
 
 trait Monoid[A] {
   def empty: A

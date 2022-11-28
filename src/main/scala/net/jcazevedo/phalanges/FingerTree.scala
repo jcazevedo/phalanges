@@ -1,9 +1,9 @@
-package net.jcazevedo.phalange
+package net.jcazevedo.phalanges
 
 import scala.collection.compat.immutable.LazyList
 
 sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
-  private[phalange] def fold[B](
+  private[phalanges] def fold[B](
       empty: => B,
       single: A => B,
       deep: (Lazy[V], Digit[V, A], Lazy[FingerTree[V, Node[V, A]]], Digit[V, A]) => B
@@ -152,7 +152,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
   def tailROption: Option[FingerTree[V, A]] =
     viewR.fold(empty = None, cons = (rest, _) => Some(rest.value))
 
-  private[phalange] def splitTree(p: V => Boolean, i: V): (Lazy[FingerTree[V, A]], A, Lazy[FingerTree[V, A]]) =
+  private[phalanges] def splitTree(p: V => Boolean, i: V): (Lazy[FingerTree[V, A]], A, Lazy[FingerTree[V, A]]) =
     fold(
       empty = throw new NoSuchElementException("splitTree of empty finger tree"),
       single = x => (Lazy.pure(FingerTree.empty), x, Lazy.pure(FingerTree.empty)),
@@ -196,7 +196,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
 }
 
 object FingerTree {
-  private[phalange] def empty[V, A](implicit measured: Measured[A, V]): FingerTree[V, A] =
+  private[phalanges] def empty[V, A](implicit measured: Measured[A, V]): FingerTree[V, A] =
     new FingerTree[V, A] {
       def fold[B](
           empty: => B,
@@ -206,7 +206,7 @@ object FingerTree {
         empty
     }
 
-  private[phalange] def single[V, A](a: A)(implicit measured: Measured[A, V]): FingerTree[V, A] =
+  private[phalanges] def single[V, A](a: A)(implicit measured: Measured[A, V]): FingerTree[V, A] =
     new FingerTree[V, A] {
       def fold[B](
           empty: => B,
@@ -216,7 +216,7 @@ object FingerTree {
         single(a)
     }
 
-  private[phalange] def deep[V, A](pr: Digit[V, A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[V, A])(implicit
+  private[phalanges] def deep[V, A](pr: Digit[V, A], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[V, A])(implicit
       measured: Measured[A, V]
   ): FingerTree[V, A] =
     new FingerTree[V, A] {
@@ -233,7 +233,7 @@ object FingerTree {
         )
     }
 
-  private[phalange] def deepL[V, A](prOpt: Option[Digit[V, A]], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[V, A])(
+  private[phalanges] def deepL[V, A](prOpt: Option[Digit[V, A]], m: Lazy[FingerTree[V, Node[V, A]]], sf: Digit[V, A])(
       implicit measured: Measured[A, V]
   ): FingerTree[V, A] =
     prOpt.fold(
@@ -241,7 +241,7 @@ object FingerTree {
         .fold(empty = FingerTree.measured(sf.toSeq: _*), cons = (head, rest) => FingerTree.deep(head.toDigit, rest, sf))
     )(pr => FingerTree.deep(pr, m, sf))
 
-  private[phalange] def deepR[V, A](pr: Digit[V, A], m: Lazy[FingerTree[V, Node[V, A]]], sfOpt: Option[Digit[V, A]])(
+  private[phalanges] def deepR[V, A](pr: Digit[V, A], m: Lazy[FingerTree[V, Node[V, A]]], sfOpt: Option[Digit[V, A]])(
       implicit measured: Measured[A, V]
   ): FingerTree[V, A] =
     sfOpt.fold(
@@ -249,7 +249,7 @@ object FingerTree {
         .fold(empty = FingerTree.measured(pr.toSeq: _*), cons = (rest, head) => FingerTree.deep(pr, rest, head.toDigit))
     )(sf => FingerTree.deep(pr, m, sf))
 
-  private[phalange] def nodes[V, A](a: A, b: A, rest: A*)(implicit measured: Measured[A, V]): List[Node[V, A]] =
+  private[phalanges] def nodes[V, A](a: A, b: A, rest: A*)(implicit measured: Measured[A, V]): List[Node[V, A]] =
     if (rest.isEmpty)
       List(Node(a, b))
     else if (rest.length == 1)
@@ -259,7 +259,7 @@ object FingerTree {
     else
       Node(a, b, rest.head) :: nodes(rest.tail.head, rest.tail.tail.head, rest.tail.tail.tail: _*)
 
-  private[phalange] def app3[V, A](a: Lazy[FingerTree[V, A]], ts: List[A], c: Lazy[FingerTree[V, A]])(implicit
+  private[phalanges] def app3[V, A](a: Lazy[FingerTree[V, A]], ts: List[A], c: Lazy[FingerTree[V, A]])(implicit
       measured: Measured[A, V]
   ): Lazy[FingerTree[V, A]] =
     a.flatMap(av =>

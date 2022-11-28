@@ -1,4 +1,4 @@
-package net.jcazevedo.phalange
+package net.jcazevedo.phalanges
 
 import org.scalacheck.Prop.forAll
 import org.specs2.ScalaCheck

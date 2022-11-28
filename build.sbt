@@ -7,8 +7,8 @@ ThisBuild / organizationHomepage := Some(url("https://jcazevedo.net/"))
 
 ThisBuild / scmInfo     := Some(
   ScmInfo(
-    url("https://github.com/jcazevedo/phalange"),
-    "scm:git@github.com:jcazevedo/phalange.git"
+    url("https://github.com/jcazevedo/phalanges"),
+    "scm:git@github.com:jcazevedo/phalanges.git"
   )
 )
 ThisBuild / developers  := List(
@@ -25,7 +25,7 @@ ThisBuild / licenses    := Seq(
   "MIT License" ->
     url("http://www.opensource.org/licenses/mit-license.php")
 )
-ThisBuild / homepage    := Some(url("https://github.com/jcazevedo/phalange"))
+ThisBuild / homepage    := Some(url("https://github.com/jcazevedo/phalanges"))
 
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishTo            := {
@@ -42,8 +42,8 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 // Enable the OrganizeImports Scalafix rule.
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
 
-lazy val phalange = (project in file(".")).settings(
-  name                           := "phalange",
+lazy val phalanges = (project in file(".")).settings(
+  name                           := "phalanges",
   libraryDependencies ++= Seq(
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1",
     "org.scalacheck"         %% "scalacheck"              % "1.17.0" % "test",

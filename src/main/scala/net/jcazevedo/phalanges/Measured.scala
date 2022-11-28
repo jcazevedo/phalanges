@@ -1,11 +1,11 @@
-package net.jcazevedo.phalange
+package net.jcazevedo.phalanges
 
 trait Measured[-A, V] extends Monoid[V] {
   def apply(a: A): V
 }
 
 object Measured {
-  private[phalange] implicit def nodeMeasured[A, V](implicit monoid: Monoid[V]): Measured[Node[V, A], V] =
+  private[phalanges] implicit def nodeMeasured[A, V](implicit monoid: Monoid[V]): Measured[Node[V, A], V] =
     new Measured[Node[V, A], V] {
       def apply(a: Node[V, A]): V = a.measure
       def empty: V = monoid.empty
