@@ -41,7 +41,8 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           one = (_, b) => FingerTree.deep(Digit(a, b), m, sf),
           two = (_, b, c) => FingerTree.deep(Digit(a, b, c), m, sf),
           three = (_, b, c, d) => FingerTree.deep(Digit(a, b, c, d), m, sf),
-          four = (_, b, c, d, e) => FingerTree.deep(Digit(a, b), m.map(ft => Node(c, d, e) +: ft), sf)
+          four = (_, b, c, d, e) =>
+            FingerTree.deep(Digit(a, b), for { node <- Lazy.pure(Node(c, d, e)); ft <- m } yield node +: ft, sf)
         )
     )
 
@@ -54,7 +55,8 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
           one = (_, b) => FingerTree.deep(pr, m, Digit(b, a)),
           two = (_, c, b) => FingerTree.deep(pr, m, Digit(c, b, a)),
           three = (_, d, c, b) => FingerTree.deep(pr, m, Digit(d, c, b, a)),
-          four = (_, e, d, c, b) => FingerTree.deep(pr, m.map(ft => ft :+ Node(e, d, c)), Digit(b, a))
+          four = (_, e, d, c, b) =>
+            FingerTree.deep(pr, for { node <- Lazy.pure(Node(e, d, c)); ft <- m } yield ft :+ node, Digit(b, a))
         )
     )
 
