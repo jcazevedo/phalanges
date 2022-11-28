@@ -152,24 +152,30 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
   def tailROption: Option[FingerTree[V, A]] =
     viewR.fold(empty = None, cons = (rest, _) => Some(rest.value))
 
-  private[phalange] def splitTree(p: V => Boolean, i: V): (FingerTree[V, A], A, FingerTree[V, A]) =
+  private[phalange] def splitTree(p: V => Boolean, i: V): (Lazy[FingerTree[V, A]], A, Lazy[FingerTree[V, A]]) =
     fold(
       empty = throw new NoSuchElementException("splitTree of empty finger tree"),
-      single = x => (FingerTree.empty, x, FingerTree.empty),
+      single = x => (Lazy.pure(FingerTree.empty), x, Lazy.pure(FingerTree.empty)),
       deep = (_, pr, m, sf) => {
         val vpr = measured.append(i, pr.measure)
         if (p(vpr)) {
-          val (l, x, r) = pr.split(p, i)
-          (l.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)), x, FingerTree.deepL(r, m, sf))
+          val (lzyL, x, lzyR) = pr.split(p, i)
+          val l = lzyL.map(_.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)))
+          val r = lzyR.map(nPr => FingerTree.deepL(nPr, m, sf))
+          (l, x, r)
         } else {
           val vm = measured.append(vpr, m.value.measure)
           if (p(vm)) {
-            val (ml, xs, mr) = m.value.splitTree(p, vpr)
-            val (l, x, r) = xs.toDigit.split(p, measured.append(vpr, ml.measure))
-            (FingerTree.deepR(pr, Lazy.pure(ml), l), x, FingerTree.deepL(r, Lazy.pure(mr), sf))
+            val (lzyMl, xs, lzyMr) = m.value.splitTree(p, vpr)
+            val (lzyL, x, lzyR) = xs.toDigit.split(p, measured.append(vpr, lzyMl.value.measure))
+            val l = lzyL.map(nSf => FingerTree.deepR(pr, lzyMl, nSf))
+            val r = lzyR.map(nPr => FingerTree.deepL(nPr, lzyMr, sf))
+            (l, x, r)
           } else {
-            val (l, x, r) = sf.split(p, vm)
-            (FingerTree.deepR(pr, m, l), x, r.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)))
+            val (lzyL, x, lzyR) = sf.split(p, vm)
+            val l = lzyL.map(nSf => FingerTree.deepR(pr, m, nSf))
+            val r = lzyR.map(_.fold(FingerTree.empty)(digit => FingerTree.measured(digit.toSeq: _*)))
+            (l, x, r)
           }
         }
       }
@@ -179,7 +185,7 @@ sealed abstract class FingerTree[V, A](implicit measured: Measured[A, V]) {
     if (isEmpty) (FingerTree.empty, FingerTree.empty)
     else if (p(measure)) {
       val (l, x, r) = splitTree(p, measured.empty)
-      (l, x +: r)
+      (l.value, x +: r.value)
     } else (this, FingerTree.empty)
 
   def takeUntil(p: V => Boolean): FingerTree[V, A] =

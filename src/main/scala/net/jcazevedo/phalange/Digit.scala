@@ -32,16 +32,18 @@ private[phalange] sealed abstract class Digit[V, A](implicit measured: Measured[
       four = (_, _, a, b, c) => Some(Digit(a, b, c))
     )
 
-  private[phalange] def split(p: V => Boolean, i: V): (Option[Digit[V, A]], A, Option[Digit[V, A]]) = {
+  private[phalange] def split(p: V => Boolean, i: V): (Lazy[Option[Digit[V, A]]], A, Lazy[Option[Digit[V, A]]]) = {
     val a = head
-    lazy val ni = measured.append(i, measured.apply(a))
-    tailOption.fold[(Option[Digit[V, A]], A, Option[Digit[V, A]])]((None, a, None))(tail =>
-      if (p(ni)) (None, a, Some(tail))
-      else {
-        val (l, x, r) = tail.split(p, ni)
-        (Some(l.fold(Digit(a))(a +: _)), x, r)
+    tailOption
+      .fold[(Lazy[Option[Digit[V, A]]], A, Lazy[Option[Digit[V, A]]])](((Lazy.pure(None), a, Lazy.pure(None)))) {
+        tail =>
+          val ni = measured.append(i, measured.apply(a))
+          if (p(ni)) (Lazy.pure(None), a, Lazy.pure(Some(tail)))
+          else {
+            val (l, x, r) = tail.split(p, ni)
+            (l.map(_.fold(Some(Digit(a)))(dig => Some(a +: dig))), x, r)
+          }
       }
-    )
   }
 
   def +:(a: A): Digit[V, A] =
