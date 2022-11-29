@@ -3,7 +3,7 @@ package net.jcazevedo.phalanges
 private[phalanges] sealed abstract class Node[V, A](implicit measured: Measured[A, V]) extends Iterable[A] {
   private[phalanges] def fold[B](node2: (Lazy[V], A, A) => B, node3: (Lazy[V], A, A, A) => B): B
 
-  final def measure: V =
+  final lazy val measure: V =
     fold(node2 = (lm, _, _) => lm.value, node3 = (lm, _, _, _) => lm.value)
 
   final def iterator: Iterator[A] =

@@ -8,7 +8,7 @@ private[phalanges] sealed abstract class Digit[V, A](implicit measured: Measured
       four: (Lazy[V], A, A, A, A) => B
   ): B
 
-  final def measure: V =
+  final lazy val measure: V =
     fold(
       one = (lm, _) => lm.value,
       two = (lm, _, _) => lm.value,
