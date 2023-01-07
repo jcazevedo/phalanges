@@ -41,6 +41,34 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 // Enable the OrganizeImports Scalafix rule.
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
 
+ThisBuild / scalacOptions ++= {
+  val allVersionFlags = List(
+    "-encoding",
+    "UTF-8",
+    "-feature",
+    "-unchecked",
+    "-Ywarn-dead-code",
+    "-Ywarn-numeric-widen"
+  )
+
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 12)) =>
+      allVersionFlags ++ List(
+        "-deprecation",
+        "-Xlint:_,-unused",
+        "-Xfatal-warnings",
+        "-Yno-adapted-args",
+        "-Ywarn-unused:_,-implicits"
+      )
+
+    case Some((2, 13)) =>
+      allVersionFlags ++ List("-Ywarn-unused:_,-implicits")
+
+    case _ =>
+      allVersionFlags
+  }
+}
+
 lazy val phalanges = (project in file(".")).settings(
   name                           := "phalanges",
   description                    := "An implementation of finger trees as proposed by Hinze and Paterson.",
@@ -50,33 +78,6 @@ lazy val phalanges = (project in file(".")).settings(
     "org.specs2"             %% "specs2-core"             % "4.17.0" % "test",
     "org.specs2"             %% "specs2-scalacheck"       % "4.17.0" % "test"
   ),
-  scalacOptions ++= {
-    val allVersionFlags = List(
-      "-encoding",
-      "UTF-8",
-      "-feature",
-      "-unchecked",
-      "-Ywarn-dead-code",
-      "-Ywarn-numeric-widen"
-    )
-
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 12)) =>
-        allVersionFlags ++ List(
-          "-deprecation",
-          "-Xlint:_,-unused",
-          "-Xfatal-warnings",
-          "-Yno-adapted-args",
-          "-Ywarn-unused:_,-implicits"
-        )
-
-      case Some((2, 13)) =>
-        allVersionFlags ++ List("-Ywarn-unused:_,-implicits")
-
-      case _ =>
-        allVersionFlags
-    }
-  },
   Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits"),
   Test / console / scalacOptions := (Compile / console / scalacOptions).value
 )
