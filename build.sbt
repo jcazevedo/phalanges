@@ -5,13 +5,13 @@ ThisBuild / organization         := "net.jcazevedo"
 ThisBuild / organizationName     := "jcazevedo"
 ThisBuild / organizationHomepage := Some(url("https://jcazevedo.net/"))
 
-ThisBuild / scmInfo     := Some(
+ThisBuild / scmInfo    := Some(
   ScmInfo(
     url("https://github.com/jcazevedo/phalanges"),
     "scm:git@github.com:jcazevedo/phalanges.git"
   )
 )
-ThisBuild / developers  := List(
+ThisBuild / developers := List(
   Developer(
     id = "jcazevedo",
     name = "Joao Azevedo",
@@ -20,12 +20,11 @@ ThisBuild / developers  := List(
   )
 )
 
-ThisBuild / description := "An implementation of finger trees as proposed by Hinze and Paterson."
-ThisBuild / licenses    := Seq(
+ThisBuild / licenses   := Seq(
   "MIT License" ->
     url("http://www.opensource.org/licenses/mit-license.php")
 )
-ThisBuild / homepage    := Some(url("https://github.com/jcazevedo/phalanges"))
+ThisBuild / homepage   := Some(url("https://github.com/jcazevedo/phalanges"))
 
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishTo            := {
@@ -44,6 +43,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 
 lazy val phalanges = (project in file(".")).settings(
   name                           := "phalanges",
+  description                    := "An implementation of finger trees as proposed by Hinze and Paterson.",
   libraryDependencies ++= Seq(
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1",
     "org.scalacheck"         %% "scalacheck"              % "1.17.0" % "test",
