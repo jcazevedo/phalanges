@@ -69,8 +69,8 @@ ThisBuild / scalacOptions ++= {
   }
 }
 
-lazy val phalanges = (project in file(".")).settings(
-  name                           := "phalanges",
+lazy val core = (project in file("modules/core")).settings(
+  name                           := "phalanges-core",
   description                    := "An implementation of finger trees as proposed by Hinze and Paterson.",
   libraryDependencies ++= Seq(
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.8.1",
@@ -81,3 +81,10 @@ lazy val phalanges = (project in file(".")).settings(
   Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits"),
   Test / console / scalacOptions := (Compile / console / scalacOptions).value
 )
+
+lazy val phalanges = (project in file("."))
+  .dependsOn(core)
+  .settings(
+    name        := "phalanges",
+    description := "An implementation of finger trees as proposed by Hinze and Paterson."
+  )
