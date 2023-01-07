@@ -82,8 +82,20 @@ lazy val core = (project in file("modules/core")).settings(
   Test / console / scalacOptions := (Compile / console / scalacOptions).value
 )
 
+lazy val applications = (project in file("modules/applications")).settings(
+  name                           := "phalanges-applications",
+  description                    := "Applications of finger trees in data structures.",
+  libraryDependencies ++= Seq(
+    "org.scalacheck" %% "scalacheck"        % "1.17.0" % "test",
+    "org.specs2"     %% "specs2-core"       % "4.17.0" % "test",
+    "org.specs2"     %% "specs2-scalacheck" % "4.17.0" % "test"
+  ),
+  Compile / console / scalacOptions --= Seq("-Xfatal-warnings", "-Ywarn-unused-import", "-Ywarn-unused:_,-implicits"),
+  Test / console / scalacOptions := (Compile / console / scalacOptions).value
+)
+
 lazy val phalanges = (project in file("."))
-  .dependsOn(core)
+  .dependsOn(core, applications)
   .settings(
     name        := "phalanges",
     description := "An implementation of finger trees as proposed by Hinze and Paterson."
