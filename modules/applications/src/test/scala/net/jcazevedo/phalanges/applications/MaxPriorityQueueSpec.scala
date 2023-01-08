@@ -13,7 +13,7 @@ class MaxPriorityQueueSpec extends Specification with ScalaCheck {
         h :: toOrderedList(t)
       }
 
-    "support dequeueing according to priority" in forAll { ints: List[Int] =>
+    "support dequeuing according to priority" in forAll { ints: List[Int] =>
       val pq = MaxPriorityQueue(ints: _*)
       toOrderedList(pq) ==== ints.sorted.reverse
     }
