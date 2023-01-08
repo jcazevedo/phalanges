@@ -5,9 +5,6 @@ import net.jcazevedo.phalanges.Measured
 import scala.math.Ordering.Implicits._
 
 private[applications] class MaxPriorityQueue[A: Ordering](val self: FingerTree[MaxPriorityQueue.Priority[A], A]) {
-  def ++(other: MaxPriorityQueue[A]): MaxPriorityQueue[A] =
-    new MaxPriorityQueue(self ++ other.self)
-
   def enqueue(x: A): MaxPriorityQueue[A] =
     new MaxPriorityQueue(x +: self)
 

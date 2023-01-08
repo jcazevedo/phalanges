@@ -17,5 +17,10 @@ class MaxPriorityQueueSpec extends Specification with ScalaCheck {
       val pq = MaxPriorityQueue(ints: _*)
       toOrderedList(pq) ==== ints.sorted.reverse
     }
+
+    "support an enqueue method" in forAll { (toEnqueue: List[Int], existing: List[Int]) =>
+      val pq = toEnqueue.foldLeft(MaxPriorityQueue(existing: _*))(_.enqueue(_))
+      toOrderedList(pq) ==== (existing ++ toEnqueue).sorted.reverse
+    }
   }
 }
