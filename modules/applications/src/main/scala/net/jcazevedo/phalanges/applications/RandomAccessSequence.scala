@@ -18,10 +18,10 @@ private[applications] class RandomAccessSequence[A](val self: FingerTree[Int, A]
   def ++(other: RandomAccessSequence[A]): RandomAccessSequence[A] =
     new RandomAccessSequence(self ++ other.self)
 
-  def :+(x: => A): RandomAccessSequence[A] =
+  def :+(x: A): RandomAccessSequence[A] =
     new RandomAccessSequence(self :+ x)
 
-  def +:(x: => A): RandomAccessSequence[A] =
+  def +:(x: A): RandomAccessSequence[A] =
     new RandomAccessSequence(x +: self)
 
   def head: A =
