@@ -97,7 +97,7 @@ lazy val applications = (project in file("modules/applications"))
   )
 
 lazy val phalanges = (project in file("."))
-  .dependsOn(core, applications)
+  .aggregate(core, applications)
   .settings(
     name        := "phalanges",
     description := "An implementation of finger trees as proposed by Hinze and Paterson."
