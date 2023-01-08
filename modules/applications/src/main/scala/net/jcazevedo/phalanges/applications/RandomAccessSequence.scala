@@ -37,10 +37,10 @@ private[applications] class RandomAccessSequence[A](val self: FingerTree[Int, A]
     new RandomAccessSequence(self.tailR)
 
   def drop(n: Int): RandomAccessSequence[A] =
-    new RandomAccessSequence(self.split(_ > n)._2)
+    new RandomAccessSequence(self.dropUntil(_ > n))
 
   def take(n: Int): RandomAccessSequence[A] =
-    new RandomAccessSequence(self.split(_ > n)._1)
+    new RandomAccessSequence(self.takeUntil(_ > n))
 
   def toList: List[A] =
     self.toList
